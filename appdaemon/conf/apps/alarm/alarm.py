@@ -20,8 +20,8 @@ ALARM_COUNTER = 'counter.ha_alarm_system_counter'
 THRESHOLD_COUNTER_VALUE = 2
 THRESHOLD_COUNTER_TIME = 5*60
 
-NOTIFY_TARGET = 'alex'
-NOTIFY_TITLE = 'HA Alarm'
+NOTIFY_TARGET = ['Status', 'Alarm']
+NOTIFY_TITLE = 'Alarm System'
 
 
 CONF_START_KEY = 'alarm_settings'
@@ -88,11 +88,9 @@ class Alarm(BaseApp):
   APP_SCHEMA = BaseApp.APP_SCHEMA.extend(ALARM_SCHEMA)
 
   def setup(self):
-    self._logger.log(f'Setting up alarm...')
-    self.listen_state(self.test, 'input_boolean.ad_testing_1')
+    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
 
     self.notifier = self.get_app('notifier')
-    # self.settings = self.get_app('settings')
 
     self.debug_level = 'DEBUG'
     self._is_setup = False
@@ -129,9 +127,12 @@ class Alarm(BaseApp):
         self.entrypoints[name] = data[CONF_ENTRYPOINT_SENSORS]
         # self._logger.log(f'Entrypoint sensor: {data}')
 
-    self._logger.log(f'Setup alarm entities')
-    self._logger.log(f'Motion sensors: {self.motion_sensors}')
-    self._logger.log(f'Entrypoint sensors: {self.entrypoints}')
+      
+    self._is_setup = True
+
+    # self._logger.log(f'Setup alarm entities')
+    # self._logger.log(f'Motion sensors: {self.motion_sensors}')
+    # self._logger.log(f'Entrypoint sensors: {self.entrypoints}')
 
 
   def _setup_alarm(self):
@@ -195,65 +196,73 @@ class Alarm(BaseApp):
 
   def trigger(self, kwargs=None):
     if self.armed:
-      message = 'Alarm ("{}") triggered by the "{}".'.format(self.state, ' and '.join(self.trigger_entities))
-      self.logger.log(message, level='INFO')
-      self.notifier.html5_notify(NOTIFY_TARGET, message, NOTIFY_TITLE)
-      self.call_service("self.const.alarm_control_panel/alarm_trigger", entity_id=self.const.ALARM_CONTROL_PANEL)
+      message = f'Alarm ("{self.state}") triggered by the "{self.trigger_entities}".'
+      self._logger.log(message, level='INFO')
+      self.notifier.telegram_notify(message, NOTIFY_TARGET, NOTIFY_TITLE)
+      self.call_service("alarm_control_panel/alarm_trigger", entity_id=self.const.ALARM_CONTROL_PANEL)
       self._reset_counter()
       self._stop_listeners() # Needed for when alarm is triggered -> pending -> armed
+      self._logger.log(self.get_state(self.const.ALARM_CONTROL_PANEL, attribute='all'))
+      if self.noone_home() or self.now_is_between('8:00:00', '20:00:00'):
+        self.notifier.tts_notify(f'The alarm system has been triggered. The police will notified. Please leave the house immediately.', volume=0.6, speaker_override=True, no_greeting=True)
     else:
-      self.logger.log('Alarm trigger() called but the system is {}.'.format(self.state), level='INFO')
+      self._logger.log(f'Alarm trigger() called but the system is {self.state}.', level='INFO')
 
 
   def arm_home(self): 
     if self.disarmed:
-      self.call_service('self.const.alarm_control_panel/alarm_arm_home', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
+      self._logger.log(f'Home alarm system is arming home now', level='DEBUG')
+      self.call_service('alarm_control_panel/alarm_arm_home', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
 
 
   def _armed_home_callback(self, entity, attribute, old, new, kwargs):
-    self.logger.log('Setting alarm to armed home.', level=self.debug_level)
+    self._logger.log('Alarm is armed_home.', level='DEBUG')
     self._start_armed_home_listeners()
 
 
   def arm_away(self):
     if self.disarmed:
-      self.notifier.tts_notify('The house alarm system is arming away. It will set in 30 seconds if not over ridden.')
-      self.call_service('self.const.alarm_control_panel/alarm_arm_away', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
+      msg = 'The house alarm system is arming away. It will set in 30 seconds if not over ridden.'
+      self.notifier.tts_notify(msg)
+      self._logger.log(msg, level='INFO')
+      self.call_service('alarm_control_panel/alarm_arm_away', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
 
 
   def _armed_away_callback(self, entity, attribute, old, new, kwargs):
-    self.logger.log('Setting alarm to armed away.', level=self.debug_level)
+    self._logger.log('Alarm is armed_away.', level='DEBUG')
     self._start_armed_away_listeners()
 
 
   def arm_night(self):
     if self.disarmed:
-      self.call_service('self.const.alarm_control_panel/alarm_arm_night', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
+      self._logger.log(f'Home alarm system is arming night now', level='DEBUG')
+      self.call_service('alarm_control_panel/alarm_arm_night', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
 
 
   def _armed_night_callback(self, entity, attribute, old, new, kwargs):
-    self.logger.log('Setting alarm to armed night.', level=self.debug_level)
+    self._logger.log('Alarm is armed_night.', level='DEBUG')
     self._start_armed_night_listeners()
 
 
   def disarm(self):
     if not self.disarmed:
-      self.call_service('self.const.alarm_control_panel/alarm_disarm', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
+      self._logger.log(f'Home alarm system is disarming now', level='DEBUG')
+      self.call_service('alarm_control_panel/alarm_disarm', entity_id=self.const.ALARM_CONTROL_PANEL, code=ALARM_CODE)
 
 
   def _disarmed_callback(self, entity, attribute, old, new, kwargs):
-    self.logger.log('Disarming the alarm.', level=self.debug_level)
+    self._logger.log('Alarm is disarmed.', level='DEBUG')
     self._stop_listeners()
 
 
   def _increment_counter(self):
     self.call_service('counter/increment', entity_id=ALARM_COUNTER)
     self.last_counter_time = datetime.datetime.now()
-    # self.logger.log('Counter incremented to {}.'.format(self.counter_count), level=self.debug_level)
+    self._logger.log(f'Counter incremented to {self.counter_count}.', level='DEBUG')
 
 
   def _reset_counter(self, kwargs=None):
-    self.logger.log('Counter reset.', level=self.debug_level)
+    self._logger.log('Counter reset.', level='DEBUG')
     self.call_service('counter/reset', entity_id=ALARM_COUNTER)
     self.cancel_timer(self.handle_reset_counter)
     self.trigger_entities = []
@@ -262,12 +271,11 @@ class Alarm(BaseApp):
   def _counter_state_change(self, entity, attribute, old, new, kwargs):
     if self.utils.valid_input(old, new):
       if 0 < int(new) < THRESHOLD_COUNTER_VALUE:
-        self.logger.log('Counter is now at {}, and will reset in {} seconds if the threshold of {} is not reached.' \
-          .format(new, THRESHOLD_COUNTER_TIME, THRESHOLD_COUNTER_VALUE), level=self.debug_level)
+        self._logger.log(f'Counter is now at {new}, and will reset in {THRESHOLD_COUNTER_TIME} seconds if the threshold of {THRESHOLD_COUNTER_VALUE} is not reached.', level='DEBUG')
         self.cancel_timer(self.handle_reset_counter)
         self.handle_reset_counter = self.run_in(self._reset_counter, THRESHOLD_COUNTER_TIME)
       elif int(new) >= THRESHOLD_COUNTER_VALUE:
-        self.logger.log('Counter reached limit of {} ("{}"), alarm is triggering.'.format(THRESHOLD_COUNTER_VALUE, int(new)), level='INFO')
+        self._logger.log(f'Counter reached limit of {THRESHOLD_COUNTER_VALUE} ("{new}"), alarm is triggering.', level='INFO')
         self.trigger()
         self.cancel_timer(self.handle_reset_counter)
         self.handle_reset_counter = None
@@ -285,16 +293,17 @@ class Alarm(BaseApp):
   def _trigger_delayed_counter(self, entity, attribute, old, new, kwargs):
     """ Trigger actions for entrypoints """
     if self.utils.valid_input(old, new):
-      self.logger.log(f'{entity} was triggered and will increment the counter. locals: {locals()}', level='INFO')
-      self.trigger_entities.append(self.friendly_name(entity).replace(' Status', '')) # Garage friendly name is Garage Door Status (for some reason??)
+      self._logger.log(f'{entity} was triggered and will increment the counter. locals: {locals()}', level='INFO')
+      self.trigger_entities.append(self.friendly_name(entity))
       self._increment_counter()
 
 
   def _trigger_immediate(self, entity, attribute, old, new, kwargs):
     """ Trigger actions for garage door """
+    self._logger.log(f'_trigger_immediate called by {entity}')
     if self.utils.valid_input(old, new):
-      self.logger.log(f'{entity} was triggered and will increment the counter. locals: {locals()}', level='INFO')
-      self.trigger_entities.append(self.friendly_name(entity).replace(' Status', ''))
+      self._logger.log(f'{entity} was triggered and will increment the counter. locals: {locals()}', level='INFO')
+      self.trigger_entities.append(self.friendly_name(entity))
       self.trigger()
 
 
@@ -308,13 +317,11 @@ class Alarm(BaseApp):
     """
     dur = 0
     if CONF_DELAYED_COUNTER_TIMER in alarm_settings:
+      # TODO: Add counter & timer combo logic
       pass
     elif CONF_DELAYED_TIMER in alarm_settings:
-      try:
-        parts = alarm_settings.strip().split(',')
-        dur = int(parts[1])
-      except Exception as e:
-        self.logger.log(f'Failed to parse settings delayed_timer (settings: {alarm_settings}): {e}', level='WARNING')
+      parts = alarm_settings.strip().split(',')
+      dur = int(parts[1])
       callback = self._trigger_immediate
     elif CONF_DELAYED_COUNTER in alarm_settings:
       callback = self._trigger_delayed_counter
@@ -323,54 +330,54 @@ class Alarm(BaseApp):
     else:
       return
 
-    # self.logger.log(f'Registering new alarm entity: {entity}, old: {old}, new: {new}, duration: {dur}, callback: {callback}', level=self.debug_level)
+    self._logger.log(f'Registering new alarm entity: {entity}, old: {old}, new: {new}, duration: {dur}, callback: {callback}', level='DEBUG')
     self.handle_list.append(self.listen_state(callback, entity, old=old, new=new, duration=dur))
 
 
-  def _register_alarm_category(self, category_settings, alarm_type, new, old=None):
+  def _register_alarm_category(self, config, alarm_type, new, old=None):
     """ Register all entities in category (ex: entrypoints, motion_sensors, etc)
-    param category_settings: Settings config for category entrypoints, motion_sensors, etc
+    param config: Settings config for category entrypoints, motion_sensors, etc
     param alary_type: armed_home, armed_away, armed_night, etc as a String
     """
-    for entity in category_settings.values():
-      alarm_settings = entity.get('alarm_settings', {}).get(alarm_type)
-      entity_ids = entity.get('entities')
+    for data in config.values():
+      alarm_settings = data.get(alarm_type, None) or data.get(CONF_ARMED, None)
+      entity_ids = data.get(CONF_ENTITY_ID)
       if alarm_settings:
         for e in entity_ids:
           self._register_alarm_entity(e, alarm_settings, new, old)
-      # else:
-      #   self.logger.log(f'Entity ({entity_ids}) does not contain alarm_settings, it will not be registered in the alarm system.', level='INFO')
+      else:
+        self._logger.log(f'Entity ({entity_ids}) does not contain {alarm_type} config, it will not be registered.', level='DEBUG')
 
 
   def _start_armed_home_listeners(self):
     """ This is for home and awake """
-    self.logger.log('Setting up armed home listeners.', level=self.debug_level)
+    self._logger.log('Setting up armed home listeners.', level='DEBUG')
     self._register_alarm_category(self.entrypoints, 'armed_home', 'on', 'off')
     # self._register_alarm_entity(FRONT_DOOR_LOCK_SENSOR, 'immediate', new='161') # code for 'tamper alarm'
 
 
   def _start_armed_away_listeners(self):
     """ This is for not home """
-    self.logger.log('Setting up armed away listeners.', level=self.debug_level)
+    self._logger.log('Setting up armed away listeners.', level='DEBUG')
     self._start_armed_home_listeners()
 
     # Might need this if Squirtly trigger alarm when away
     if self.get_state(self.const.PET_MODE_BOOLEAN) == 'off':
       self._register_alarm_category(self.motion_sensors, 'armed_away', 'on', 'off')
     else:
-      self.logger.log('Pet mode is turned on, alarm armed away motion sensors will not be used for alarm detection.', level=self.debug_level)
+      self._logger.log('Pet mode is turned on, alarm armed away motion sensors will not be used for alarm detection.', level='DEBUG')
 
 
   def _start_armed_night_listeners(self):
     """ This is for home and asleep """
-    self.logger.log('Setting up armed night listeners.', level=self.debug_level)
+    self._logger.log('Setting up armed night listeners.', level='DEBUG')
     self._register_alarm_category(self.entrypoints, 'armed_night', 'on', 'off')
     # self._register_alarm_entity(FRONT_DOOR_LOCK_SENSOR, 'immediate', new='161') # code for 'tamper alarm'
 
 
   def _stop_listeners(self):
     """ Unregister all entities for the current alarm (i.e. Disarm the alarm system) """
-    self.logger.log('Listeners stopped.', level=self.debug_level)
+    self._logger.log('Listeners stopped.', level='DEBUG')
     for handle in self.handle_list:
       self.cancel_listen_state(handle)
     self.handle_list = []
@@ -381,5 +388,7 @@ class Alarm(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing Alarm Module: ')  
+    # self.arm_night()
+
 
     

@@ -88,7 +88,7 @@ class Telegram(BaseApp):
     """ Convert chat alias to chat ID's """
     if not isinstance(target, list):
       target = [target]
-    res = [CHATS[v] for v in target if v.lower() in CHATS]
+    res = [CHATS[v.lower()] for v in target if v.lower() in CHATS]
 
     # Debugging output to notify me when there is an invalid target provided
     if len(res) != len(target):

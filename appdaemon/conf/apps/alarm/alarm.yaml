@@ -31,6 +31,7 @@ alarm:
           - binary_sensor.study_window_sensor_l2
           - binary_sensor.study_window_sensor_r1
           - binary_sensor.study_window_sensor_r2
+          - binary_sensor.study_outside_door_sensor
         armed_away: delayed_timer, 5
         armed_home: delayed_timer, 5
         armed_night: delayed_timer, 5
@@ -56,7 +57,7 @@ alarm:
         armed_away: delayed_counter
       entrypoints:
         entity_id:
-          - binary_sensor.dummy
+          - binary_sensor.master_bathroom_window_sensor
         armed_away: delayed_timer, 5
         armed_home: delayed_timer, 5
         armed_night: delayed_timer, 5

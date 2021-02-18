@@ -128,18 +128,18 @@ camera: !include_dir_merge_list camera
 input_boolean: !include_dir_merge_named input_booleans
 input_text: !include_dir_merge_named input_texts
 input_select: !include_dir_merge_named input_selects
+counter: !include_dir_merge_named counters
 
 group: !include_dir_merge_named groups
 scene: !include_dir_merge_list scenes 
+automation: !include_dir_merge_list automations
 
-# automation: !include_dir_merge_list automations
 # alert: !include_dir_merge_named alerts
 # timer: !include_dir_merge_named timers
 # shell_command: !include_dir_merge_named shell_commands
 # input_datetime: !include_dir_merge_named input_datetimes
 # zone: !include_dir_merge_list zones
 # cover: !include_dir_merge_list covers
-# counter: !include_dir_merge_named counters
 # switch: !include_dir_merge_list switches
 # script: !include_dir_merge_named scripts
 

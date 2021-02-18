@@ -285,7 +285,6 @@ class LightController(BaseApp):
         self._logger.log(f'enable_entity ({enable_entity}) and enable_state ({enable_state}) are both required.')
 
 
-  
   def enable_light(self, light):
     if isinstance(light, str):
       light = [light]
