@@ -1,0 +1,7 @@
+
+scenes:
+  module: scenes
+  class: Scenes
+  dependencies:  
+    - custom_logger
+

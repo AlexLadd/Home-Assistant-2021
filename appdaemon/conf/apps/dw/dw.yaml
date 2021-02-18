@@ -1,0 +1,14 @@
+
+doors_windows:
+  module: dw
+  class: DoorsWindows
+  # global_dependencies:
+  #   - base_app
+  #   - const
+  #   - utils
+  dependencies:
+    - custom_logger
+    - notifier
+    - presence
+    # - alarm
+    - lights

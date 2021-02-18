@@ -1,0 +1,10 @@
+
+seasons:
+  module: seasons
+  class: Seasons
+  global_dependencies:
+    - file_watchdog
+  dependencies:  
+    - custom_logger
+    - notifier
+    - scenes

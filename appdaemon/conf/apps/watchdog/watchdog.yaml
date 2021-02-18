@@ -1,0 +1,9 @@
+
+daily_routines:
+  module: daily_routines
+  class: DailyRoutines
+  dependencies:
+    - custom_logger
+    - notifier
+    - presence
+    

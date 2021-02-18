@@ -1,0 +1,27 @@
+
+sleep:
+  module: sleep
+  class: AwakeAsleep
+  # global_dependencies:
+  #   - base_app
+  #   - utils
+  #   - const
+  dependencies:
+    - custom_logger
+    - presence
+  
+sleep_controller:
+  module: sc
+  class: AwakeAsleepController
+  dependencies:
+    - custom_logger
+    - notifier
+    - sleep
+    - presence
+    - lights
+    # - alarm
+    # - security
+    # - messages
+    # - climate
+    # - spotify_engine
+

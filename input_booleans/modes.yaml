@@ -1,0 +1,39 @@
+
+dark_mode:
+  name: Dark Mode
+  icon: mdi:weather-night
+emergency_mode:
+  name: Emergency Mode
+  icon: mdi:alarm-light
+vacation_mode:
+  name: Vacation Mode
+  icon: mdi:beach
+guest_mode:
+  name: Guest Mode
+  icon: mdi:account-switch
+speech_mode:
+  name: Speech Mode
+  icon: mdi:volume-high
+
+manual_hvac_mode:
+  name: Manual HVAC Mode
+  icon: mdi:air-filter
+ac_mode:
+  name: AC Mode
+  icon: mdi:air-conditioner
+heat_mode:
+  name: Heat Mode
+  icon: mdi:radiator
+automated_hvac_mode:
+  name: Automated HVAC Mode
+  icon: mdi:robot
+
+pet_mode:
+  name: Pet Mode
+  icon: mdi:cat
+motion_mode:
+  name: Motion Mode
+  icon: mdi:motion-sensor
+simple_light_mode:
+  name: Simple Light Mode
+  icon: mdi:floor-lamp

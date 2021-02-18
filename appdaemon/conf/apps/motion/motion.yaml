@@ -1,0 +1,175 @@
+
+# App that handles custom & generic motion sensors
+
+motion_master:
+  module: motion
+  class: Motion
+  dependencies:
+    - custom_logger
+    - lights
+  logging_cutoff: INFO
+  sensors:
+
+    study:
+      aliases:
+        - office
+        - loft
+      sensors:
+        - binary_sensor.hue_motion_study_motion
+        - binary_sensor.hue_motion_study_2_motion
+      on_lights:
+        - light.study_ceiling_light
+      on_duration: 5*60
+    master_bedroom:
+      aliases:
+        - master bedroom
+        - master_bedroom
+        - master
+      sensors:
+        - binary_sensor.hue_motion_master_bedroom_motion
+      on_lights:
+        # - light.master_bedroom # Hue group for all master lights
+        - light.master_fan_light
+        # - steph_master_lamp
+        # - alex_master_lamp
+      on_duration: 5*60
+    master_bathroom:
+      # log_level: INFO
+      aliases:
+        - master bathroom
+        - upstairs bathroom
+        - upstairs_bathroom
+      sensors:
+        # - binary_sensor.zooz_master_bathroom_motion_sensor    # This is the auto generated one that does trigger on motion
+        - binary_sensor.master_bathroom_motion_sensor         # Created in binary_sensors manually
+      on_lights:
+        # - light.master_bathroom_ceiling # Hue group for all master bathroom lights
+        # - light.master_bathroom_tub
+        - master_bathroom_ceiling
+        - master_bathroom_tub
+      on_duration: 5*60
+      motion_disable_states:
+        - input_boolean.master_shower_in_use, ==, on
+        - input_boolean.master_tub_in_use, ==, on
+    master_closet:
+      aliases:
+        - master closet
+        - upstairs closet
+        - upstairs_closet
+      sensors:
+        - binary_sensor.master_closet_pir_sensor
+      on_lights:
+        - master_closet
+      on_duration: 2*60
+    # upstairs_stairs:
+    #   aliases:
+    #     - upstairs stairs
+    #     - loft stairs
+    #     - loft_stairs
+    #     - study stiars
+    #     - study_stairs
+    #     - master_stairs
+    #   sensors:
+    #     - binary_sensor.dummy
+    #   on_lights:
+    #     - switch.upstairs_stair
+    #   on_duration: 5*60
+
+    main_bathroom:
+      # log_level: INFO
+      aliases:
+        - main bathroom
+      sensors:
+        - binary_sensor.main_bathroom_pir_sensor
+      on_lights:
+        - switch.main_bathroom
+      on_duration: 5*60
+      motion_disable_states:
+        - input_boolean.main_shower_in_use, ==, on
+    main_hallway:
+      aliases:
+        - main hallway
+      sensors:
+        - binary_sensor.main_hallway_pir_sensor
+      on_lights:
+        - switch.main_hallway
+      on_duration: 5*60
+    front_entrance:
+      aliases:
+        - front entrance
+        - front door inside
+      sensors:
+        - binary_sensor.front_door_inside_pir_sensor
+      on_lights:
+        - switch.front_door
+      on_duration: 5*60
+    living_room:
+      aliases:
+        - living_room
+        - family room
+        - family_room
+      sensors:
+        - binary_sensor.living_room_motion_sensor
+        - binary_sensor.living_room_pir_sensor
+      on_lights:
+        - light.living_room_fan_light
+        - light.living_room_lamps
+      on_duration: 5*60
+      motion_disable_states:
+        - input_boolean.living_room_tv_in_use, ==, on
+    dining_room:
+      aliases:
+        - dining room
+      sensors:
+        - binary_sensor.dining_room_pir_sensor
+      on_lights:
+        - light.dining_room
+      on_duration: 2*60
+    kitchen:
+      sensors:
+        - binary_sensor.hue_motion_kitchen_motion
+        - binary_sensor.kitchen_pir_sensor
+      on_lights:
+        - switch.kitchen_ceiling
+      on_duration: 5*60
+    kitchen_closet:
+      aliases:
+        - kitchen closet
+      sensors:
+        - binary_sensor.kitchen_closet_pir_sensor
+      on_lights:
+        - switch.kitchen_closet
+      on_duration: 2*60
+
+    basement_stairs:
+      # log_level: INFO 
+      aliases:
+        - basement stairs
+        - kitchen stairs
+        - kitchen_stairs
+      sensors:
+        - binary_sensor.basement_stairs_pir_sensor
+      on_lights:
+        - switch.basement_stairs
+      on_duration: 5*60
+    basement_storage:
+      aliases:
+        - basement storage
+      sensors:
+        - binary_sensor.basement_storage_pir_sensor
+      on_lights:
+        - light.basement_storage
+      on_duration: 15*60
+    laundry:
+      aliases:
+        - laundry room
+        - laundry_room
+      sensors:
+        - binary_sensor.laundry_pir_sensor
+      on_lights:
+        - light.laundry_room
+        - light.pantry
+      on_duration: 15*60
+
+
+

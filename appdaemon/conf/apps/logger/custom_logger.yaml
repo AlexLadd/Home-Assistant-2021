@@ -1,0 +1,4 @@
+
+custom_logger:
+  module: custom_logger
+  class: CustomLogger

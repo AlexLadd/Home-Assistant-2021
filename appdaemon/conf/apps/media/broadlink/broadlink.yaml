@@ -1,0 +1,16 @@
+
+broadlink_client:
+  module: broadlink_client
+  class: BroadlinkClient
+  dependencies:
+    - custom_logger
+  # local_ip: 192.168.0.74
+  logging_cutoff: WARNING
+  broadlinks:
+    living_room: # IP: 192.168.0.174
+      mac: c8:f7:42:f6:0c:36
+      friendly_name: Living Room Broadlink
+    master: # IP: 192.168.0.56
+      mac: c8:f7:42:f6:00:4a
+      friendly_name: Master Broadlink
+

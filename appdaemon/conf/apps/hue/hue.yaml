@@ -1,0 +1,9 @@
+
+hue_buttons:
+  module: hue
+  class: HueButtons
+  dependencies:
+    - custom_logger
+    - sleep
+    - presence
+    - lights

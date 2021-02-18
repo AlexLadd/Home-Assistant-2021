@@ -1,0 +1,11 @@
+
+# H.A. UI Groups for simple organization
+
+# Appdaemon testing booleans
+ad_testing_booleans:
+  name: "Appdaemon Testing Booleans"
+  entities:
+    - input_boolean.ad_testing_1
+    - input_boolean.ad_testing_2
+    - input_boolean.ad_testing_3
+    - input_boolean.ad_testing_4

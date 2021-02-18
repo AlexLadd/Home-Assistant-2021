@@ -1,0 +1,37 @@
+
+# Door/Window Groups
+
+door_sensors_master:
+  name: "Door Sensors"
+  # control: hidden
+  entities:
+    - binary_sensor.front_door_window_sensor
+    - binary_sensor.kitchen_door_window_sensor
+
+
+window_sensors_master:
+  name: "Window Sensors"
+  # control: hidden
+  entities:
+    - binary_sensor.big_bedroom_bathroom_window_sensor
+    - binary_sensor.big_bedroom_window_sensor
+    - binary_sensor.dining_room_1_sensor
+    - binary_sensor.dining_room_2_sensor
+    - binary_sensor.dining_room_3_sensor
+    - binary_sensor.kitchen_window_1_sensor
+    - binary_sensor.kitchen_window_2_sensor
+    - binary_sensor.living_room_window_1_sensor
+    - binary_sensor.living_room_window_2_sensor
+    - binary_sensor.living_room_window_3_sensor
+    - binary_sensor.master_bathroom_window_sensor
+    - binary_sensor.master_bedroom_window_1_sensor
+    - binary_sensor.master_bedroom_window_2_sensor
+    - binary_sensor.master_bedroom_window_3_sensor
+    - binary_sensor.medium_bedroom_window_sensor
+    - binary_sensor.small_bedroom_window_sensor
+    - binary_sensor.study_window_sensor_l1
+    - binary_sensor.study_window_sensor_l2
+    - binary_sensor.study_window_sensor_r1
+    - binary_sensor.study_window_sensor_r2
+
+

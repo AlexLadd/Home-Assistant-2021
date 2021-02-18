@@ -1,0 +1,7 @@
+
+3dprinter:
+  module: 3d_printer
+  class: ThreeDPrinter
+  dependencies:
+    - notifier
+    - custom_logger

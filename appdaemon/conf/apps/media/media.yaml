@@ -1,0 +1,128 @@
+
+
+living_room_tv:
+  module: tv
+  class: LivingRoomTV
+  dependencies:
+    - custom_logger
+    - lights
+    - broadlink_client
+
+
+speakers:
+  module: speakers
+  class: Speakers
+  dependencies:
+    - custom_logger
+    - sleep
+
+  speakers:
+
+    master_bedroom:
+      aliases:
+        - master bedroom
+        - master bedroom speaker
+        - master_bedroom_speaker
+        - master speaker
+        - master_speaker
+        - master
+      friendly_name: Master Bedroom Speaker
+      entity_id: media_player.master_bedroom_speaker
+      is_group: False
+      default_volume: 0.30
+      speaker_disable_states: input_boolean.ad_testing_2, ==, off
+
+    master_bathroom:
+      aliases:
+        - master bathroom
+        - master_bathroom_speaker
+        - master bathroom speaker
+        - upstairs_bathroom
+        - upstairs_bathroom_speaker
+      entity_id: media_player.master_bathroom_speaker
+      is_group: False
+      default_volume: 0.30
+
+    kitchen:
+      aliases:
+        - kitchen_speaker
+      entity_id: media_player.kitchen_speaker
+      is_group: False
+      default_volume: 0.30
+
+    living_room:
+      aliases:
+        - living room
+        - living_room_speaker
+        - living room speaker
+        - family_room_speaker
+        - family room speaker
+        - family_room
+        - family room
+      entity_id: media_player.family_room_speaker
+      is_group: False
+      default_volume: 0.30
+
+    basement_storage:
+      aliases:
+        - basement storage
+        - basement
+      entity_id: media_player.basement_speaker
+      is_group: False
+      default_volume: 0.45
+
+
+    all_speakers:
+      aliases:
+        - all speakers
+        - all
+      entity_id: media_player.all_speakers
+      is_group: True
+      default_volume: 0.35
+      child_speakers:
+        - media_player.basement_speaker
+        - media_player.family_room_speaker
+        - media_player.kitchen_speaker
+        - media_player.master_bathroom_speaker
+        - media_player.master_bedroom_speaker
+
+    all_except_bedrooms:
+      aliases:
+        - all except bedrooms
+        - no_bedrooms
+        - no bedrooms
+        - no_bedroom
+        - no bedroom
+      entity_id: media_player.all_except_bedrooms
+      is_group: True
+      default_volume: 0.35
+      child_speakers:
+        - media_player.basement_speaker
+        - media_player.family_room_speaker
+        - media_player.kitchen_speaker
+
+    all_main_floor:
+      aliases:
+        - all speakers
+      entity_id: media_player.main_floor_speakers
+      is_group: True
+      default_volume: 0.35
+      child_speakers:
+        - media_player.family_room_speaker
+        - media_player.kitchen_speaker
+
+    all_upstairs:
+      aliases:
+        - top floor
+        - top_floor
+        - top_floor_speakers
+        - all_master
+        - all master
+      entity_id: media_player.upstairs_speakers
+      is_group: True
+      default_volume: 0.35
+      child_speakers:
+        - media_player.master_bedroom_speaker
+        - media_player.master_bathroom_speaker
+    
+

@@ -1,0 +1,145 @@
+
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+
+
+cloud:
+  google_actions:
+    entity_config: !include google_assistant_entity_config.yaml
+
+
+# logger:
+#   default: critical
+#   logs:
+#     homeassistant.components.telegram_bot: debug
+
+
+nest:
+  client_id: !secret nest_client_id
+  client_secret: !secret nest_client_secret
+  project_id: !secret nest_project_id
+  subscriber_id: !secret nest_subscription_id
+
+
+# Text to speech
+tts:
+  # - platform: google_translate # Default TTS Platform
+  - platform: google_cloud
+    service_name: google_say
+    key_file: google_cloud_tts_key_file.json
+    text_type: ssml # Options: 'text' or 'ssml'
+    # profile: handset-class-device # Have not tested any profiles
+    # voice: en-AU-Standard-C
+    voice: en-GB-Wavenet-A
+    speed: 0.8
+    pitch: 0.0
+    gain: 0.0
+
+
+# Google Calender
+google:
+  client_id: !secret google_calendar_client_id
+  client_secret: !secret google_calendar_client_secret
+
+
+# States: pending, armed_away, armed_home, armed, armed_night, disarmed, triggered, 
+# (disarmed > arming_time > armed > delay_time > arming_time??? (pending_time used to work like this) > triggered)
+alarm_control_panel:
+  - platform: manual
+    name: "HA Alarm"
+    code: !secret ha_alarm_code
+    delay_time: 30 # Number of second before triggering alarm once a 'trigger event' occurs
+    arming_time: 30 # Number of seconds before changing states (USED TO BE PENDING_TIME)
+    trigger_time: 120 # Number of second the triggered state is 'firing'
+    disarm_after_trigger: false
+
+
+# Required for Hue Dimmers & Hue Buttons (Custom Components)
+# remote:
+#   - platform: hueremote
+
+
+# Notification
+# Only 1 telegram bot seems to work at once.... (Only 1 chat_id seems to be active [the last one])
+telegram_bot:
+  - platform: webhooks
+    api_key: !secret telegram_bot_api_token
+    trusted_networks:
+      - 149.154.160.0/20
+      - 91.108.4.0/22
+      - 127.0.0.1
+    allowed_chat_ids:
+      - !secret telegram_logging_chat_id
+      - !secret telegram_status_chat_id
+      - !secret telegram_alarm_chat_id
+      - !secret telegram_reporting_chat_id
+      - !secret telegram_alex_user_id
+
+# Aliases for notification platforms/services
+notify:
+  - platform: telegram
+    name: harris_alarm_telegram
+    chat_id: !secret telegram_alarm_chat_id
+  - platform: telegram
+    name: harris_logging_telegram
+    chat_id: !secret telegram_logging_chat_id
+  - platform: telegram
+    name: harris_status_telegram
+    chat_id: !secret telegram_status_chat_id
+  - platform: telegram
+    name: harris_reporting_telegram
+    chat_id: !secret telegram_reporting_chat_id
+  # - platform: telegram
+  #   name: harris_alex_telegram
+  #   chat_id: !secret telegram_alex_user_id
+
+
+# Camera feed located in camera folder
+octoprint:
+  host: !secret octoprint_ip
+  api_key: !secret octoprint_api_key
+  bed: true
+  number_of_tools: 1
+
+
+# Device Tracking
+life360:
+  accounts:
+    username: !secret life360_username
+    password: !secret life360_password
+  circles:
+    include: [Family]
+  driving_speed: 29
+  interval_seconds: 10
+  max_gps_accuracy: 200
+  max_update_wait: # fires life360_update_overdue event after this time
+    minutes: 45
+  show_as_state:
+    - driving
+    - moving
+  warning_threshold: 2
+  error_threshold: 3 
+
+
+# Includes
+binary_sensor: !include_dir_merge_list binary_sensors
+sensor: !include_dir_merge_list sensors
+camera: !include_dir_merge_list camera
+input_boolean: !include_dir_merge_named input_booleans
+input_text: !include_dir_merge_named input_texts
+input_select: !include_dir_merge_named input_selects
+
+group: !include_dir_merge_named groups
+scene: !include_dir_merge_list scenes 
+
+# automation: !include_dir_merge_list automations
+# alert: !include_dir_merge_named alerts
+# timer: !include_dir_merge_named timers
+# shell_command: !include_dir_merge_named shell_commands
+# input_datetime: !include_dir_merge_named input_datetimes
+# zone: !include_dir_merge_list zones
+# cover: !include_dir_merge_list covers
+# counter: !include_dir_merge_named counters
+# switch: !include_dir_merge_list switches
+# script: !include_dir_merge_named scripts
+

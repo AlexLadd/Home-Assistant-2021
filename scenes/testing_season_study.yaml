@@ -1,0 +1,27 @@
+- name: Testing Season Study
+  entities:
+    light.hue_color_lamp_1:
+      state: 'on'
+      rgb_color:
+      - 255
+      - 0
+      - 251
+      brightness: 12
+      transition: 1
+    light.hue_color_lamp_3:
+      state: 'on'
+      rgb_color:
+      - 128
+      - 33
+      - 252
+      brightness: 12
+      transition: 1
+    light.hue_color_lamp_14:
+      state: 'on'
+      rgb_color:
+      - 255
+      - 0
+      - 251
+      brightness: 12
+      transition: 1
+  

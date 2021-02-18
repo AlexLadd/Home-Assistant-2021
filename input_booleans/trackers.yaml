@@ -1,0 +1,58 @@
+
+steph_awake:
+  name: Steph Awake
+  icon: mdi:sleep
+alex_awake:
+  name: Alex Awake
+  icon: mdi:sleep
+everyone_awake:
+  name: Everyone Awake
+  icon: mdi:sleep
+everyone_asleep:
+  name: Everyone Asleep
+  icon: mdi:sleep
+
+alex_away:
+  name: Alex away
+  icon: mdi:human-male
+steph_away:
+  name: Steph away
+  icon: mdi:human-female
+occupancy:
+  name: Occupancy 
+  icon: mdi:home
+both_together:
+  name: Alex and Steph Together
+  icon: mdi:account-multiple
+
+# Daily message toggles for completion
+steph_morning_greeting_complete_today:
+  name: Stephs Morning Greeting Complete Today
+alex_morning_greeting_complete_today:
+  name: Alexs Morning Greeting Complete Today
+
+# Device trackers for usage
+dishwasher_in_use:
+  name: Dishwasher in Use
+  icon: mdi:dishwasher
+
+master_shower_in_use:
+  name: Master Shower in Use
+  icon: mdi:shower-head
+master_tub_in_use:
+  name: Master Tub in Use
+  icon: mdi:hot-tub
+main_shower_in_use:
+  name: Main Shower in Use
+  icon: mdi:shower-head
+
+living_room_tv_in_use:
+  name: Living Room TV in Use
+  icon: mdi:television
+
+washing_machine_in_use:
+  name: Washing Machine in Use
+  icon: mdi:washing-machine
+dryer_in_use:
+  name: Dryer in Use
+  icon: mdi:tumble-dryer

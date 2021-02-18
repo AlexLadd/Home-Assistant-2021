@@ -1,0 +1,17 @@
+  
+security:
+  module: security
+  class: SecurityManager
+  dependencies:
+    - custom_logger
+#     # - garage
+#     - presence
+#     - doors_windows
+#     # - alarm
+#     - notifier
+#     - lights
+#     - sleep
+#     - living_room_tv
+#     # - messages
+#     - spotify_engine
+#     - speakers

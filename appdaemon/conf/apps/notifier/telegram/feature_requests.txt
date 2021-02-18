@@ -1,0 +1,21 @@
+2021-02-09, 18:37:02 Alex: this is a Feature request 3
+
+DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is going
+  -> DONE - Feb 10
+
+2021-02-10, 12:06:38 Stephanie: program tv to turn off at 1 AM using a smart plug
+
+2021-02-10, 19:23:21 Alex: add hue sensors and buttons to zigbee stick. This might make them significantly more responsive.
+
+2021-02-10, 23:08:29 Alex: add a watchdog to motion module to check how long light has been on every once in a while and notify if no motion recently and the light is on
+
+2021-02-11, 22:01:35 Alex: put spare hue button in basement. Use to permanently turn on lights when working down there and off again when done
+  -> DONE - Button added but need to be aware that light will now stay on until manually turned off (Basement Storage & Laundry Room)
+
+2021-02-12, 18:39:59 Stephanie: turn on outside lights when we get home or open outside door
+  -> DONE - Feb 12 - UNTESTED IN PRODUCTION
+
+2021-02-16, 04:23:06 Alex: sent telegram message when log level is warning or higher
+
+2021-02-16, 05:07:51 Alex: outside light turns off after 5 or so minutes while we are shoveling outside
+  -> DONE - Upped to 15 minutes

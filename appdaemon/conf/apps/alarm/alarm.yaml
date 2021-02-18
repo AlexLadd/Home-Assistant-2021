@@ -1,0 +1,193 @@
+
+alarm_controller:
+  module: ac
+  class: AlarmController
+  dependencies: 
+    - custom_logger
+    - notifier
+    # - security
+    - alarm
+    - presence
+
+
+alarm:
+  module: alarm
+  class: Alarm
+  dependencies: 
+    - notifier
+    - custom_logger
+
+  alarm_settings:
+
+    study:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.hue_motion_study_motion
+          - binary_sensor.hue_motion_study_2_motion
+        armed_away: delayed_counter
+      entrypoints:
+        entity_id:
+          - binary_sensor.study_window_sensor_l1
+          - binary_sensor.study_window_sensor_l2
+          - binary_sensor.study_window_sensor_r1
+          - binary_sensor.study_window_sensor_r2
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+
+    master_bedroom:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.hue_motion_master_bedroom_motion
+        armed_away: delayed_counter
+      entrypoints:
+        entity_id:
+          - binary_sensor.master_bedroom_window_1_sensor
+          - binary_sensor.master_bedroom_window_2_sensor
+          - binary_sensor.master_bedroom_window_3_sensor
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+
+    master_bathroom:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.master_bathroom_motion_sensor
+        armed_away: delayed_counter
+      entrypoints:
+        entity_id:
+          - binary_sensor.dummy
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+
+    master_closet:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.master_closet_pir_sensor
+        armed_away: delayed_counter
+
+    upstairs_stairs:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.master_bathroom_motion_sensor
+        armed_away: delayed_counter
+
+    big_bedroom:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.big_bedroom_window_sensor
+        armed_away: delayed_counter
+
+    big_bedroom_bathroom:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.big_bedroom_bathroom_window_sensor
+        armed_away: delayed_counter
+
+    medium_bedroom:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.medium_bedroom_window_sensor
+        armed_away: delayed_counter
+
+    small_bedroom:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.small_bedroom_window_sensor
+        armed_away: delayed_counter
+
+    main_bathroom:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.main_bathroom_pir_sensor
+        armed_away: delayed_counter
+
+    main_hallway:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.main_hallway_pir_sensor
+        armed_away: delayed_counter
+
+    front_entrance:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.front_door_inside_pir_sensor
+        armed_away: delayed_counter
+      entrypoints:
+        entity_id:
+          - binary_sensor.front_door_window_sensor
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+
+    living_room:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.living_room_motion_sensor
+          - binary_sensor.living_room_pir_sensor
+        armed_away: delayed_counter
+      entrypoints:
+        entity_id:
+          - binary_sensor.living_room_window_1_sensor
+          - binary_sensor.living_room_window_2_sensor
+          - binary_sensor.living_room_window_3_sensor
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+
+    dining_room:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.dining_room_pir_sensor
+        armed_away: delayed_counter
+      entrypoints:
+        entity_id:
+          - binary_sensor.dining_room_1_sensor
+          - binary_sensor.dining_room_2_sensor
+          - binary_sensor.dining_room_3_sensor
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+
+    kitchen:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.hue_motion_kitchen_motion
+          - binary_sensor.kitchen_pir_sensor
+          - binary_sensor.kitchen_door_window_sensor
+        armed_away: delayed_counter
+      entrypoints:
+        entity_id:
+          - binary_sensor.kitchen_window_1_sensor
+          - binary_sensor.kitchen_window_2_sensor
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+
+    kitchen_closet:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.kitchen_closet_pir_sensor
+        armed_away: delayed_counter
+
+    basement_stairs:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.basement_stairs_pir_sensor
+        armed_away: delayed_counter
+
+    laundry:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.laundry_pir_sensor
+        armed_away: delayed_counter
+
+    basement_storage:
+      motion_sensors:
+        entity_id:
+          - binary_sensor.basement_storage_pir_sensor
+        armed_away: delayed_counter
+
+
+

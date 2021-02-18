@@ -1,0 +1,12 @@
+
+
+  ##########################################################
+  ## Octoprint 3D Printer Camera Config
+  ##########################################################
+
+# Not currently working in HA or in Octopi UI
+
+# - platform: mjpeg
+#   name: OctoPrint
+#   still_image_url: http://192.168.0.30/webcam/?action=snapshot
+#   mjpeg_url: http://192.168.0.30/webcam/?action=stream

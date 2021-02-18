@@ -1,0 +1,24 @@
+
+climate:
+  module: climate
+  class: Climate
+  # global_dependencies:
+  #   - base_app
+  #   - const
+  #   - utils
+  dependencies: 
+    - custom_logger
+
+smart_heating_cooling:
+  module: climate_controller
+  class: SmartClimate
+  # global_dependencies:
+  #   - base_app
+  #   - const
+  #   - utils
+  dependencies: 
+    - custom_logger
+    - climate
+    - sleep
+    - presence
+    - doors_windows

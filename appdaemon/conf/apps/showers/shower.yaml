@@ -1,0 +1,24 @@
+
+master_shower:
+  module: shower
+  class: Shower
+  switch: switch.master_bathroom_fan
+  boolean: input_boolean.master_shower_in_use
+  motion_sensor: binary_sensor.master_bathroom_motion_sensor
+  light_on:
+    - master_bathroom_ceiling
+    - master_bathroom_tub
+  dependencies:
+    - custom_logger
+    - lights
+
+main_shower:
+  module: shower
+  class: Shower
+  switch: switch.main_bathroom_fan
+  boolean: input_boolean.main_shower_in_use
+  motion_sensor: binary_sensor.main_bathroom_pir_sensor
+  light_on: main_bathroom
+  dependencies:
+    - custom_logger
+    - lights

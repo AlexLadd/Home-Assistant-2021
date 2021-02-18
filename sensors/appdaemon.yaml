@@ -1,0 +1,44 @@
+
+# AD Sensors updated manually from apps
+# - platform: template
+#   sensors:
+#     last_motion_location:
+#       friendly_name: 'Last Motion Location'
+#       value_template: > 
+#         {% if True %} Starting Up {% endif %} 
+# - platform: template
+#   sensors:
+#     logging_feed:
+#       friendly_name: 'Logger Feed'
+#       value_template: > 
+#         {% if True %} Starting Up {% endif %} 
+# - platform: template
+#   sensors:
+#     season:
+#       friendly_name: 'Season'
+#       value_template: > 
+#         {% if True %} No Season {% endif %} 
+# - platform: template
+#   sensors:
+#     holiday:
+#       friendly_name: 'Holiday'
+#       value_template: > 
+#         {% if True %} No Holiday {% endif %} 
+
+# Manual runtime sensors for appliances (Updated via apps)
+# - platform: template
+#   sensors:
+#     dishwasher_run_time:
+#       friendly_name: "Dishwasher Run Time"
+#       value_template: >
+#         {% if True %} 00:00:00 {% endif %} 
+#     dryer_run_time:
+#       friendly_name: "Dryer Run Time"
+#       value_template: >
+#         {% if True %} 00:00:00 {% endif %} 
+#     washing_machine_run_time:
+#       friendly_name: "Washing Machine Run Time"
+#       value_template: >
+#         {% if True %} 00:00:00 {% endif %} 
+
+

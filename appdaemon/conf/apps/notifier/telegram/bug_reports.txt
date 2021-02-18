@@ -1,0 +1,18 @@
+2021-02-09, 18:37:33 Alex: this is a new bug report 1
+
+2021-02-09, 22:27:31 Alex: turn off all lights doesn't get every light. Also some lights are not picked up in AD even though they are in HA
+  -> DONEish - Sometime AD does not pick up lights when HA is restart... there isnt much that can be done right now without a restart
+
+2021-02-14, 22:09:52 Stephanie: lights didn't turn off when steph went to bed
+  -> FIXED - turn_light_on controller class was missing transition parameter to turn_light_off in light class
+
+2021-02-16, 04:23:05 Stephanie: laundry room and pantry light were dim
+
+2021-02-16, 04:23:06 Alex: Master fan didn't turn off when first person set to asleep
+  -> FIXED - turn_light_on controller class was missing transition parameter to turn_light_off in light class
+
+2021-02-16, 04:23:06 Stephanie: bed lamps did not turn on
+  -> FIXED - Sleep being on took priority over manual adjustments
+
+2021-02-16, 04:23:06 Alex: bedside lamps have brightness of 0 when we are asleep
+  -> FIXED - Sleep being on took priority over manual adjustments

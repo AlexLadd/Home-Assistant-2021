@@ -1,0 +1,12 @@
+
+
+        ##########################################################
+        ## Carport Camera (Foscam)
+        ## Pan & Tilt Options
+        ##########################################################
+
+- platform: foscam
+  name: Carport
+  ip: !secret carport_camera_ip
+  username: !secret carport_camera_username
+  password: !secret carport_camera_password

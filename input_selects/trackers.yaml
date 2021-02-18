@@ -1,0 +1,14 @@
+
+alex_status_dropdown:
+  name: Alex Location Tracker
+  options:
+    - Home
+    - Away
+    - Extended Away
+
+steph_status_dropdown:
+  name: Steph Location Tracker
+  options:
+    - Home
+    - Away
+    - Extended Away

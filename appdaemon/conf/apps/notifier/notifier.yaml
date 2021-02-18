@@ -1,0 +1,29 @@
+###########################
+# Notification services 
+# Services: Telegram, TTS, 
+###########################
+
+
+notifier:
+  module: notifier
+  class: Notifier
+  dependencies:
+    - custom_logger
+    - telegram
+    - tts
+
+telegram:
+  module: telegram
+  class: Telegram
+  dependencies:
+    - custom_logger
+
+tts:
+  module: tts
+  class: TTS
+  dependencies:
+    - custom_logger
+    - sleep
+    - speakers
+    # - messages
+    # - spotify_client

@@ -1,0 +1,38 @@
+
+spotify_engine:
+  module: spotify_engine
+  class: SpotifyEngine
+  dependencies:
+    - custom_logger
+    - speakers
+    - spotify_client
+
+
+spotify_client:
+  module: spotify_client
+  class: SpotifyClient
+  dependencies:
+    - custom_logger
+  log_level: DEBUG
+  username: !secret spotify_username
+  password: !secret spotify_password
+  sp_dc: !secret spotify_sp_dc
+  sp_key: !secret spotify_sp_key
+  country: CA
+  language: en_CA
+  user_aliases:
+    ha : !secret spotify_alias_ha
+    alex : !secret spotify_alias_alex
+    steph : !secret spotify_alias_steph
+  device_aliases:
+    kitchen : Kitchen Speaker
+    office : Office Speaker
+    master : Master Bedroom Speaker
+    living room : Family Room Speaker
+    basement : Basement Speaker
+    upstairs : Upstairs Speakers
+    everywhere : All Speakers
+    no bedrooms : All Except Bedrooms
+
+
+

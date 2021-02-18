@@ -1,0 +1,15 @@
+
+# Appdaemon input_booleans
+
+ad_testing_1:
+  name: Appdaemon Testing 1
+  icon: mdi:test-tube
+ad_testing_2:
+  name: Appdaemon Testing 2
+  icon: mdi:syllabary-hangul
+ad_testing_3:
+  name: Appdaemon Testing 3
+  icon: mdi:syllabary-hiragana
+ad_testing_4:
+  name: Appdaemon Testing 4
+  icon: mdi:gitlab

@@ -1,0 +1,320 @@
+
+# child_bulbs don't do anything....
+lights:
+  module: lights
+  class: LightController
+  # global_dependencies:
+  #   - const
+  #   - utils
+  #   - constraints
+  dependencies:  
+    - custom_logger
+    - sleep
+    - seasons
+    # - awake_asleep
+    # - transitional_lighting
+  global_dependencies:
+    - circadian
+  # constraint_app_enabled: 
+  #   - input_boolean.emergency_mode, ==, off
+  logging_cutoff: INFO
+  lights:
+
+    study:
+      # log_level: 'INFO'
+      entity_id: light.study_ceiling_light
+      child_bulbs: 
+        - light.hue_color_lamp_1
+        - light.hue_color_lamp_3
+        - light.hue_color_lamp_14
+
+      # If any of of these does not satisfy the light will not operate
+      # light_disable_states: 
+      #   - input_boolean.ad_testing_1, ==, off
+      #   - input_boolean.ad_testing_2, ==, on
+      #   - input_boolean.ad_testing_3, ==, on
+        
+      # Order Matters!!! First options will be used first if possible and so forth
+      options:
+        # use_colour_loop: True
+        use_random_colours: False
+        # scene: scene.testing_season_study
+        use_seasons: False
+        use_circadian: False
+        use_holidays: False
+
+      properties:
+        # use_dark_mode: 'input_boolean.dark_mode'
+        use_lux: 'sensor.wupws_solarradiation'
+        lux_threshold: 555 # Readings above threshold will prevent light from turning on
+
+        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_brightness: 5
+        # sleep_colour: (100,100,100)
+        # sleep_transition: 6
+        # sleep_lights: light.study_ceiling_light
+
+        transition:
+          morning: 1
+          day: 2
+          night: 3
+        brightness:
+          morning: 65
+          day: 100
+          night: 85
+        day_threshold_times: # 24H clock (Can be either 12:00 or 12:00:00 format)
+          morning: '5:00:00'
+          day: '12:00'
+          night: '18:00:00'
+
+
+    master_bedroom:
+      entity_id: light.master_bedroom
+      child_lights:
+        - light.master_fan_light
+        - light.master_bathroom_tub
+      child_bulbs:
+        - light.hue_color_candle_1
+        - light.hue_color_candle_2
+        - light.hue_color_candle_3
+        - light.hue_color_candle_4
+        - light.hue_ambiance_spot_2
+        - light.hue_ambiance_spot_1
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_brightness: 0
+    master_bedroom_fan:
+      log_level: INFO
+      aliases:
+        - master bedroom fan
+        - master_bedroom_fan
+        - master fan
+        - master_fan
+        - master ceiling
+        - master_ceiling
+      entity_id: light.master_fan_light
+      parent_light: master_bedroom
+      child_bulbs:
+        - light.hue_color_candle_1
+        - light.hue_color_candle_2
+        - light.hue_color_candle_3
+        - light.hue_color_candle_4
+      # options:
+      #   use_colour_loop: True
+      #   use_random_colours: True
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_brightness: 0
+    master_closet:
+      aliases:
+        - master closet
+        - master bedroom closet
+        - master_bedroom_closet
+      entity_id: switch.master_closet
+    master_bedroom_alex:
+      # log_level: INFO
+      aliases:
+        - master_light_alex
+        - master light alex
+        - alex master light
+        - alex_master_light
+        - alex_master_lamp_2
+        - alex_master_lamp
+        - alex master lamp
+        - master alex
+        - master_alex
+      entity_id: light.alex_master_lamp
+      parent_light: master_bedroom
+      child_bulbs:
+        - light.hue_ambiance_spot_2
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_brightness: 0
+    master_bedroom_steph:
+      aliases:
+        - master_light_steph
+        - master light steph
+        - steph master light
+        - steph_master_light
+        - steph_master_lamp_2
+        - steph_master_lamp
+        - steph master lamp
+        - master steph
+        - master_steph
+      entity_id: light.steph_master_lamp
+      parent_light: master_bedroom
+      child_bulbs:
+        - light.hue_ambiance_spot_1
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_brightness: 0
+
+    master_bathroom_ceiling:
+      # log_level: 'INFO'
+      aliases:
+        - master bathroom ceiling
+      entity_id: light.master_bathroom_ceiling
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+        brightness: 100
+        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_brightness: 25
+    master_bathroom_tub:
+      # log_level: 'INFO'
+      aliases:
+        - master bathroom tub
+      entity_id: light.master_bathroom_tub
+      # switch_entity_id: switch.master_bathroom_tub
+      child_bulbs:
+        - light.hue_ambiance_spot_3
+        - light.hue_ambiance_spot_4
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+        brightness: 100
+        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_brightness: 25
+
+    upstairs_stairway:
+      entity_id: switch.upstairs_stair
+    
+    main_hallway:
+      entity_id: switch.main_hallway
+
+    main_bathroom:
+      # log_level: INFO
+      entity_id: switch.main_bathroom
+
+    front_door:
+      entity_id: switch.front_door
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+
+    living_room:
+      entity_id: light.living_room
+      child_lights:
+        - light.living_room_fan_light
+        - light.living_room_lamps
+      child_bulbs:
+        - light.hue_color_lamp_7
+        - light.hue_color_lamp_8
+        - light.hue_color_lamp_19
+        - light.hue_color_lamp_20
+        - light.hue_color_lamp_21
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    living_room_fan:
+      entity_id: light.living_room_fan_light
+      parent_light: living_room
+      child_bulbs:
+        - light.hue_color_lamp_19
+        - light.hue_color_lamp_20
+        - light.hue_color_lamp_21
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    living_room_lamps:
+      entity_id: light.living_room_lamps
+      parent_light: living_room
+      child_bulbs:
+        - light.hue_color_lamp_7
+        - light.hue_color_lamp_8
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    living_room_light_strip:
+      aliases:
+        - living room light strip
+        - living_room_lightstrip
+        - living room light strip
+        - living room tv lights
+        - living_room_tv_lights
+      entity_id: light.hue_lightstrip_plus_1
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    
+    dining_room:
+      log_level: INFO
+      entity_id: light.dining_room
+      switch_entity_id: switch.dining_room
+      child_bulbs:
+        - light.hue_color_lamp_9
+        - light.hue_color_lamp_10
+        - light.hue_color_lamp_13
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+
+    kitchen_ceiling:
+      log_level: INFO
+      aliases:
+        - kitchen
+      entity_id: light.kitchen_ceiling
+      child_bulbs: 
+        - light.hue_color_lamp_2
+        - light.hue_color_lamp_4
+        - light.hue_color_lamp_5
+        - light.hue_color_lamp_6
+        - light.hue_color_lamp_11
+        - light.hue_color_lamp_12
+      switch_entity_id: switch.kitchen_ceiling
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+        use_lux: 'sensor.average_light_level'
+        lux_threshold: 75
+    kitchen_door:
+      aliases:
+        - kitchen door inside
+        - inside kitchen door
+        - carport inside
+        - inside carport
+      entity_id: switch.kitchen_door
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    kitchen_closet:
+      entity_id: switch.kitchen_closet
+
+    basement_stairway:
+      # log_level: INFO
+      entity_id: switch.basement_stairs
+    
+    laundry_room:
+      aliases:
+        - laundry
+      entity_id: light.laundry_room
+      child_bulbs:
+        - light.hue_color_lamp_15
+        - light.hue_color_lamp_16
+    
+    pantry:
+      entity_id: light.pantry
+      child_bulbs: 
+        - light.hue_white_lamp_1
+
+    basement_storage:
+      entity_id: light.basement_storage
+      child_bulbs:
+        - light.hue_color_lamp_17
+        - light.hue_color_lamp_18
+      # light_disable_states: 
+      #   - input_boolean.ad_testing_1, ==, off
+      properties:
+        brightness: 100
+
+    outside_carport:
+      aliases:
+        - outside carport
+        - outside kitchen
+        - outside side
+      entity_id: switch.outside_front
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    outside_front_door:
+      entity_id: switch.front_door_outside
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    outside_soffit:
+      entity_id: switch.outdoor_soffit
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
+    

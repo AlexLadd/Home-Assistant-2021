@@ -1,0 +1,13 @@
+
+        ##########################################################
+        ## Zooz Upstairs Bathroom Motion Sensor
+        ##########################################################
+
+# Both burglar (8) and alarm_level (255) indicate motion detected
+- platform: template
+  sensors:
+    master_bathroom_motion_sensor:
+      friendly_name: "Master Bathroom Motion Sensor"
+      # value_template: "{{ is_state('sensor.master_bathroom_motion_sensor_burglar', '8') }}"
+      value_template: "{{ is_state('sensor.master_bathroom_motion_sensor_alarm_level', '255') }}"
+      device_class: motion

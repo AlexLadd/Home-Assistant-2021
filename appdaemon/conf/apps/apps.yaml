@@ -1,0 +1,8 @@
+
+global_modules:
+  - utils
+  - utils_validation
+  - const
+  - base_app
+  - file_watchdog
+  - circadian
