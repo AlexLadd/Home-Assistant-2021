@@ -246,7 +246,7 @@ lights:
         use_dark_mode: 'input_boolean.dark_mode'
 
     kitchen_ceiling:
-      log_level: INFO
+      # log_level: INFO
       aliases:
         - kitchen
       entity_id: light.kitchen_ceiling

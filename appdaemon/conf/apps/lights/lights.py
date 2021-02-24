@@ -239,6 +239,28 @@ class LightController(BaseApp):
       self._lights_obj[name.lower()] = Light(self, settings)
 
 
+  def is_on(self, entity=None):
+    """ Check if a light is on, default check is all lights """
+    if entity is not None:
+      return bool(self.get_state(entity) == 'on')
+
+    # Default is to check all lights
+    return len(self.lights_on_list()) > 0
+
+
+  def lights_on_list(self):
+    """ Return a list of lights that are on """
+    on = []
+    for name, lt_obj in self._lights_obj.items():
+      entity_id = lt_obj.entity_id
+      if entity_id is not None and self.get_state(entity_id) == 'on':
+        on.append(entity_id)
+      # switch_entity_id = lt_obj.switch_entity_id
+      # if switch_entity_id is not None and self.get_state(switch_entity_id) == 'on':
+      #   on.append(entity_id)
+    return on
+
+
   def map_light_to_entity(self, light):
     """ Return the entity id of light based on alias if it exists """
     if not light:
@@ -520,14 +542,6 @@ class Light:
       self._logger.log(f'{self.name} light is currently disabled.', level=self.log_level)
       return False
 
-    if self.use_dark_mode is not None and self.app.get_state(self.use_dark_mode) == 'off':
-      self._logger.log(f'{self.name} light is disabled during dark mode.', level=self.log_level)
-      return False
-
-    if self.use_lux and self.lux_above_cutoff:
-      self._logger.log(f"{self.name} lights avg light level sensor readings ({self.app.get_state(self.use_lux)}) > cutoff ({self.lux_threshold}).", level=self.log_level)
-      return False
-
     if self.get_brightness() == 0:
       self._logger.log(f'{self.name} light has a brightness of 0 currently. Perhaps everyone is asleep and sleep_brightness is 0.', level=self.log_level)
       return False
@@ -537,6 +551,15 @@ class Light:
         if self.app.constraint_compare(constraint): 
           self._logger.log(f'{self.name} light does not satisfy one or more of the "light_disable_states" ({self.light_disable_states}) (failed: {constraint}, result: {self.app.constraint_compare(constraint)}).', level=self.log_level)
           return False
+
+    # Check if light level below cutoff before checking dark_mode BUT AFTER EVERYTHING ELSE!
+    if self.use_lux and not self.lux_above_cutoff:
+      self._logger.log(f"{self.name} light level sensor readings ({self.app.get_state(self.use_lux)}) < cutoff threshold ({self.lux_threshold}).", level=self.log_level)
+      return True
+
+    if self.use_dark_mode is not None and self.app.get_state(self.use_dark_mode) == 'off':
+      self._logger.log(f'{self.name} light is disabled during dark mode.', level=self.log_level)
+      return False
 
     return True
 
@@ -802,12 +825,15 @@ class Light:
   def _light_callback(self, entity, attribute, old, new, kwargs):
     """ Monitor HA light state (and switch if defined) """
     # Light adjustments other than ON -> OFF or OFF -> ON will provide a dictionary for new
-    # self._logger.log(f'[{self.name}] old: {old}, new: {new}')
+    if old == new:
+      self._logger.log(f'[{self.name}] old an new are the same in light callback... Should I skip these???')
+
+
     new_state = new['state'] if isinstance(new, dict) else new
     old_state = old['state'] if isinstance(old, dict) else old
 
     # Light changed settings while on
-    adjusted_while_on = old_state == new_state
+    adjusted_while_on = old_state == new_state and old != new # Added old != new check
 
     if new_state == 'on':
       self._logger.log(f'[{self.name}] was turned ON in reality!', 'NOTSET')

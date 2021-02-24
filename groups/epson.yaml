@@ -1,0 +1,11 @@
+
+# Espon Office Printer Sensors:
+
+espon_printer_sensors_master:
+  name: "Epson Printer Sensors"
+  entities:
+    - sensor.epson_wf_3720_series_black_ink
+    - sensor.epson_wf_3720_series_cyan_ink
+    - sensor.epson_wf_3720_series_magenta_ink
+    - sensor.epson_wf_3720_series_yellow_ink
+    - sensor.epson_wf_3720_series

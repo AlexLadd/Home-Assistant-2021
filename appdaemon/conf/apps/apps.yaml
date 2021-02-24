@@ -6,3 +6,4 @@ global_modules:
   - base_app
   - file_watchdog
   - circadian
+  - appliance_base

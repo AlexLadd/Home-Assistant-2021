@@ -13,6 +13,22 @@ from const import (DARK_MODE_BOOLEAN,
 
 #       **********  General Functions **********
 
+def list_to_pretty_print(items, finish_word):
+  """ Format list to a readable sentence """
+  res = ''
+  if len(items) == 0:
+    return res
+  if len(items) == 1:
+    res += 'The ' + items[0] + ' is ' + finish_word + '.'
+  elif len(items) == 2:
+    res += 'The ' + items[0] + ' and ' + items[1] + ' are ' + finish_word + '.'
+  else:
+    res += 'The'
+    for entity in items[:-1]:
+      res += ' ' + entity + ','
+    res += ' and ' + items[-1] + ' are ' + finish_word + '.'
+  return res
+
 def one_space(string):
   """ Strip out all whitespace except for one """
   return re.sub(' +', ' ', string.strip())

@@ -1,0 +1,26 @@
+
+# Power, Current, & Voltage Sensor Groups
+
+
+# Power Sensors:
+
+power_sensors_master:
+  name: "Power Sensors"
+  entities:
+    - sensor.sonoff_s31_washing_machine_power
+
+
+# Current Sensors:
+
+current_sensors_master:
+  name: "Current Sensors"
+  entities:
+    - sensor.sonoff_s31_washing_machine_current
+
+
+# Voltage Sensors:
+
+voltage_sensors_master:
+  name: "Voltage Sensors"
+  entities:
+    - sensor.sonoff_s31_washing_machine_voltage

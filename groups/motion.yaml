@@ -4,6 +4,7 @@ motion_sensor_master:
   name: "Motion Sensors"
   # control: hidden
   entities:
+    - sensor.last_motion_location
     - binary_sensor.master_bathroom_motion_sensor
     - binary_sensor.main_hallway_pir_sensor
     - binary_sensor.dining_room_pir_sensor
@@ -20,6 +21,7 @@ motion_sensor_master:
     - binary_sensor.hue_motion_study_2_motion
     - binary_sensor.hue_motion_study_motion
     - binary_sensor.hue_motion_master_bedroom_motion
+    - binary_sensor.main_bathroom_pir_sensor
 
 
 

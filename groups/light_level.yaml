@@ -1,0 +1,13 @@
+
+# Indoor Light Level Sensors:
+
+indoor_light_level_sensors_master:
+  name: "Indoor Light Level Sensors"
+  entities:
+    - sensor.average_light_level
+    - sensor.hue_motion_study_light_level
+    - sensor.hue_motion_study_2_light_level
+    - sensor.hue_motion_kitchen_light_level
+    - sensor.master_bathroom_motion_sensor_luminance
+    - sensor.living_room_motion_sensor_luminance
+    - sensor.hue_motion_master_bedroom_light_level

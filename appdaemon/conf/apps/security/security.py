@@ -17,7 +17,7 @@ EMERGENCY_LIGHTS_FREQUENCY = 4
 HUE_LIGHTS = 'light.all_hue_lights'
 LIGHT_SWITCHES = 'group.light_switches_master'
 
-VACANCY_MONITOR_FREQUENCY = 12*60*60
+DEFAULT_VACANCY_MONITOR_FREQUENCY = 12*60*60
 
 NOTIFY_TARGET = 'alex'
 NOTIFY_TITLE = 'Security'
@@ -26,13 +26,9 @@ NOTIFY_TITLE = 'Security'
 class SecurityManager(BaseApp):
 
   def setup(self):
-    self._logger.log(f'Security app is not setup yet!')
-    return
+    self.listen_state(self.test,'input_boolean.ad_testing_1')
 
-
-    # self.listen_state(self.test,'input_boolean.appdaemon_testing')
-
-    # self.alarm = self.get_app('alarm')
+    self.alarm = self.get_app('alarm')
     # self.garage = self.get_app('garage')
     self.dw = self.get_app('doors_windows')
     self.presence = self.get_app('presence')
@@ -52,7 +48,7 @@ class SecurityManager(BaseApp):
     elif self.sleep.everyone_asleep:
       self.start_security_monitoring(frequency=60*60)
 
-    # Listen for emergency mode
+    # Listen for emergency mode (TODO: LOTS OF TESTING FIRST - THIS COULD GO OFF IN THE MIDDLE OF THE NIGHT)
     # self.listen_state(self._emergency_mode_on_callback, self.const.EMERGENCY_MODE_BOOLEAN)
 
 
@@ -64,32 +60,10 @@ class SecurityManager(BaseApp):
   @property
   def house_locked_down(self):
     """ Verify the house locked down correctly """
-    if self.presence.guest_mode:
-      return True
-
-    if not self.presence.occupancy:
-      if not self.alarm.armed_away:
-        return False
-      if not self.lights.all_lights_off and not self.presence.vacation_mode:
-        return False
-      if not self.dw.doors_closed:
-        return False
-      if not self.dw.front_door_secure:
-        return False
-    elif self.presence.occupancy:
-      if self.sleep.everyone_asleep:
-        if not self.alarm.armed_home:
-          return False
-        if not self.dw.front_door_secure:
-          return False
-        if self.living_room_tv.is_on:
-          return False
-        if self.garage.is_open:
-          return False
-    return True 
+    return len(self._house_lockdown_entities()) == 0
 
 
-  def _house_locked_down_entities(self):
+  def _house_lockdown_entities(self):
     """ Returns a list of entites that are unsecure if any """
     if self.presence.guest_mode:
       return []
@@ -99,55 +73,45 @@ class SecurityManager(BaseApp):
     if not self.presence.occupancy:
       if not self.alarm.armed_away:
         unsecure.append('alarm armed away')
-      if not self.lights.all_lights_off and not self.presence.vacation_mode:
-        # unsecure.append('lights')
+      if self.lights.is_on() and not self.presence.vacation_mode:
         unsecure.extend(self.lights.lights_on_list())
       if not self.dw.doors_closed:
         unsecure.append('doors')
-      if not self.dw.front_door_secure:
-        unsecure.append('front door')
+      # if not self.dw.front_door_secure:
+      #   unsecure.append('front door')
+
     elif self.presence.occupancy:
       if self.sleep.everyone_asleep:
         if not self.alarm.armed_home:
           unsecure.append('alarm armed home')
-        if not self.dw.front_door_secure:
-          unsecure.append('front door')
+        # if not self.dw.front_door_secure:
+        #   unsecure.append('front door')
         if self.living_room_tv.is_on:
-          unsecure.append('basement tv')
-        if self.garage.is_open:
-          unsecure.append('garage door')
+          unsecure.append('living room tv')
+        # if self.garage.is_open:
+        #   unsecure.append('garage door')
     return unsecure
 
 
   @property
-  def house_secure(self):
-    """ Verify house is secure when in vacation mode """
-    if self.presence.guest_mode:
-      return True
-
-    if not self.house_locked_down:
-      return False
-    if not self.dw.everything_closed:
-      return False
-    if not self.lights.all_lights_off_security_check:
-      return False
-    return True
+  def vacation_mode_locked_down(self):
+    """ Verify house is secure - Used when house is in vacation mode """
+    return len(self._vacation_mode_lockdown_entities()) == 0
 
 
-  def _house_secure_entities(self):
-    """ Returns a list of entites that are unsecure if any while in vacation mode """
+  def _vacation_mode_lockdown_entities(self):
+    """ Returns a list of entites that are unsecure if any - Used when house is in vacation mode """
     if self.presence.guest_mode:
       return []
 
     unsecure = []
 
     if not self.house_locked_down:
-      unsecure = self._house_locked_down_entities()
-    if not self.dw.everything_closed:
-      if 'doors' in unsecure:
-        unsecure.remove('doors')
-      unsecure.append('doors and windows')
-    if not self.lights.all_lights_off_security_check:
+      unsecure = self._house_lockdown_entities()
+    if not self.dw.windows_closed:
+      unsecure.append('windows')
+    # if not self.lights.all_lights_off_security_check:
+    if self.lights.is_on():
       if 'lights' not in unsecure:
         unsecure.append('lights')
     return unsecure
@@ -155,18 +119,21 @@ class SecurityManager(BaseApp):
 
   def lockdown_house(self):
     self._logger.log('House lockdown initiated.', level='INFO')
-    self.dw.lock_front_door()
-    self.garage.close()
-    if not self.presence.guest_mode:
-      self.se.stop_music() # Stop Spotify music if playing
-      self.lights.turn_all_off()
-      self.living_room_tv.turn_off_tv()
-      if self.presence.occupancy:
-        self.alarm.arm_home()
-      else:
-        self.alarm.arm_away()
-    else:
+    # self.dw.lock_front_door()
+    # self.garage.close()
+
+    # Block some stuff from being locked down while guest_mode is on
+    if self.presence.guest_mode:
       self._logger.log('Guest mode is on, only a partial lockdown was done.', level='INFO')
+      return
+
+    self.se.stop_music() # Stop Spotify music if playing
+    self.lights.turn_all_off()
+    self.living_room_tv.turn_off_tv()
+    if self.presence.occupancy:
+      self.alarm.arm_home()
+    else:
+      self.alarm.arm_away()
 
 
   def get_unsecure_entities(self, light_check=True, window_check=True, door_check=True):
@@ -174,34 +141,8 @@ class SecurityManager(BaseApp):
     # This method should not presume the intentions based on the household state
     # For example if guest_mode is on or not
 
-    res = ''
-    if window_check and door_check:
-      if not self.dw.everything_closed:
-        res = self.messages.entry_point_check() # Will get both windows and doors
-    elif window_check:
-      if not self.dw.windows_closed:
-        res = self.messages.entry_point_check(door_check=False)
-    elif door_check:
-      if not self.dw.doors_closed:
-        res = self.messages.entry_point_check(window_check=False)
-
-    r = []
-    if not self.dw.front_door_secure:
-      r.append('front door lock')
-    if self.garage.is_open:
-      r.append('garage door')
-    if not self.alarm.armed:
-      r.append('alarm')
-    if self.living_room_tv.is_on:
-      r.append('basement TV')
-
-    res += ' ' + list_to_pretty_print(r, 'unsecure')
-
-    if light_check:
-      if not self.lights.all_lights_off:
-        res += ' ' + self.messages.light_check()
-
-    return res.strip()
+    # TODO: Create light method, DW method that returns which doors and windows are open
+    return ''
 
 
   def stop_security_monitoring(self):
@@ -211,7 +152,7 @@ class SecurityManager(BaseApp):
       self.handle_vacancy_monitoring = None
 
 
-  def start_security_monitoring(self, frequency=None, start_offset=2):
+  def start_security_monitoring(self, frequency=None, start_offset=90):
     """ 
     param start_offset: Number of minutes before starting the check
     """
@@ -221,37 +162,38 @@ class SecurityManager(BaseApp):
 
     self.handle_vacancy_monitoring = self.run_every(
       self._security_monitoring, 
-      datetime.datetime.now() + datetime.timedelta(minutes=start_offset),
-      frequency or VACANCY_MONITOR_FREQUENCY,
+      datetime.datetime.now() + datetime.timedelta(seconds=start_offset),
+      frequency or DEFAULT_VACANCY_MONITOR_FREQUENCY,
     )
 
 
   def _security_monitoring(self, kwargs):
     """ Verify that the house stays locked down """
-    if self.anyone_home() and self.sleep.someone_awake:
-      self._logger.log('Security monitoring is running while someone is home and awake, shutting down now.', level='WARNING')
-      self.stop_security_monitoring()
-      return
+    self._logger.log(f'_security_monitoring called')
+    # if self.anyone_home() and self.sleep.someone_awake:
+    #   self._logger.log('Security monitoring is running while someone is home and awake, shutting down now.', level='WARNING')
+    #   self.stop_security_monitoring()
+    #   return
 
     msg = ''
     unsecure = []
 
     if not self.presence.vacation_mode:
-      unsecure = self._house_locked_down_entities()
+      unsecure = self._house_lockdown_entities()
       if len(unsecure) > 0:
         msg = 'Security monitoring check. '
     else:
-      unsecure = self._house_secure_entities()
+      unsecure = self._vacation_mode_lockdown_entities()
       if len(unsecure) > 0:
         msg = 'Security monitoring check while in vacation mode. '
 
     if msg:
       if self.presence.guest_mode:
         msg += 'Guest mode is turned on, only a partial lockdown will be done. '
-      msg += list_to_pretty_print(unsecure, 'unsecure') + ' Attempting to lockdown now. Please have a look.'
+      msg += self.utils.list_to_pretty_print(unsecure, 'unsecure') + ' Attempting to lockdown now. Please have a look.'
       msg = msg.strip()
       self._logger.log(msg, level='INFO')
-      self.notifier.html5_notify(NOTIFY_TARGET, msg, NOTIFY_TITLE)  
+      self.notifier.telegram_notify(msg, NOTIFY_TARGET, NOTIFY_TITLE) 
       self.lockdown_house()
 
 
@@ -259,7 +201,7 @@ class SecurityManager(BaseApp):
     if not self.emergency_mode:
       message = 'Emergency mode turned on.'
       self._logger.log(message, level='INFO')
-      self.notifier.html5_notify(NOTIFY_TARGET, message, NOTIFY_TITLE)
+      self.notifier.telegram_notify(msg, NOTIFY_TARGET, NOTIFY_TITLE) 
       self.turn_on(self.const.EMERGENCY_MODE_BOOLEAN)
 
 
@@ -267,7 +209,7 @@ class SecurityManager(BaseApp):
     if self.emergency_mode:
       message = 'Emergency mode turned off.'
       self._logger.log(message, level='INFO')
-      self.notifier.html5_notify(NOTIFY_TARGET, message, NOTIFY_TITLE)
+      self.notifier.telegram_notify(msg, NOTIFY_TARGET, NOTIFY_TITLE) 
       self.turn_off(self.const.EMERGENCY_MODE_BOOLEAN)
 
 
@@ -283,7 +225,7 @@ class SecurityManager(BaseApp):
         # Prime lights to red where possible
         self.call_service('light/turn_on', entity_id=HUE_LIGHTS, brightness_pct=100, transition=0, rgb_color=[255,0,0])
         self.turn_on(LIGHT_SWITCHES)
-        self.call_service('frontend/set_theme', name='Dark - Orange')
+        # self.call_service('frontend/set_theme', name='Dark - Orange')
         self.run_in(self._emergency_lights_off, EMERGENCY_LIGHTS_FREQUENCY)
 
         # Start emergency_mode tts anouncement loop
@@ -318,7 +260,28 @@ class SecurityManager(BaseApp):
 
 
   def test(self, entity, attribute, old, new, kwargs):
-    pass
+    self._logger.log(f'Testing Security Module: ')
+    # self.start_security_monitoring(frequency=3)
+
+    # self._test_lockdown_secure_states()
+
+
+  def _test_lockdown_secure_states(self):
+    res = self._vacation_mode_lockdown_entities()
+    self._logger.log(f'_vacation_mode_lockdown_entities: {res}')
+
+    res = self._house_lockdown_entities()
+    self._logger.log(f'_house_lockdown_entities: {res}')
+
+    res = self.get_unsecure_entities()
+    self._logger.log(f'get_unsecure_entities: {res}')
+
+    res = self.vacation_mode_locked_down
+    self._logger.log(f'vacation_mode_locked_down: {res}')
+
+    res = self.house_locked_down
+    self._logger.log(f'house_locked_down: {res}')
+
 
 
   def terminate(self):

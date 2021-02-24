@@ -1,0 +1,29 @@
+
+# PWS Sensors:
+
+pws_sensors_master:
+  name: "PWS Sensors"
+  # control: hidden
+  entities:
+    - sensor.wupws_stationid
+    - sensor.wupws_solarradiation
+    - sensor.wupws_uv
+    - sensor.wupws_pressure
+    - sensor.wupws_humidity
+    - sensor.wupws_dewpt
+    - sensor.wupws_heatindex
+    - sensor.wupws_preciptotal
+    - sensor.wupws_preciprate
+    - sensor.wupws_precip_1d
+    - sensor.wupws_precip_chance_1d
+    - sensor.wupws_temp
+    - sensor.wupws_temp_high_1d
+    - sensor.wupws_temp_low_1d
+    - sensor.wupws_winddir
+    - sensor.wupws_windgust
+    - sensor.wupws_windspeed
+    - sensor.wupws_windchill
+    - sensor.wupws_wind_1d
+    - sensor.wupws_weather_1d
+    - sensor.wupws_weather_1n
+

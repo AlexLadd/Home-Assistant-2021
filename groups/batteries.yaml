@@ -1,0 +1,14 @@
+
+# Battery Sensors:
+
+battery_sensors_master:
+  name: "Battery Sensors"
+  entities:
+    - sensor.hue_dimmer_mobile_battery_level
+    - sensor.lumi_lumi_sensor_cube_aa854b05_power
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_battery_level
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_battery_level_4
+    - sensor.kitchen_window_sensor_battery_level
+    - sensor.front_door_window_sensor_battery_level
+    - sensor.master_bathroom_motion_sensor_battery_level
+    - sensor.living_room_motion_sensor_battery_level

@@ -26,19 +26,19 @@
 #         {% if True %} No Holiday {% endif %} 
 
 # Manual runtime sensors for appliances (Updated via apps)
-# - platform: template
-#   sensors:
-#     dishwasher_run_time:
-#       friendly_name: "Dishwasher Run Time"
-#       value_template: >
-#         {% if True %} 00:00:00 {% endif %} 
-#     dryer_run_time:
-#       friendly_name: "Dryer Run Time"
-#       value_template: >
-#         {% if True %} 00:00:00 {% endif %} 
-#     washing_machine_run_time:
-#       friendly_name: "Washing Machine Run Time"
-#       value_template: >
-#         {% if True %} 00:00:00 {% endif %} 
+- platform: template
+  sensors:
+    dishwasher_run_time:
+      friendly_name: "Dishwasher Run Time"
+      value_template: >
+        {% if True %} 00:00:00 {% endif %} 
+    dryer_run_time:
+      friendly_name: "Dryer Run Time"
+      value_template: >
+        {% if True %} 00:00:00 {% endif %} 
+    washing_machine_run_time:
+      friendly_name: "Washing Machine Run Time"
+      value_template: >
+        {% if True %} 00:00:00 {% endif %} 
 
 

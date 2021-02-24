@@ -79,7 +79,7 @@ class DoorsWindows(BaseApp):
 
   @property
   def everything_closed(self):
-    return bool(not self.is_open())
+    return bool(self.doors_closed and self.windows_closed)
 
   def get_door_sensor(self, door):
     if door.lower().replace('_', ' ') in ['kitchen', 'carport', 'side door']:
@@ -146,7 +146,9 @@ class DoorsWindows(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log('Testing DW Module: ')
-    self._door_test()
+    # self._door_test()
+
+    self._logger.log(f'Doors closed: {self.doors_closed}')
 
 
   def _door_test(self):

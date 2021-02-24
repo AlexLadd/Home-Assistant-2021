@@ -19,3 +19,11 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
 
 2021-02-16, 05:07:51 Alex: outside light turns off after 5 or so minutes while we are shoveling outside
   -> DONE - Upped to 15 minutes
+
+2021-02-20, 15:33:43 Stephanie: when the kitchen/ front door is open, tts
+
+2021-02-20, 15:34:40 Stephanie: when both of us are asleep, is the alarm on?
+
+2021-02-22, 17:32:09 Stephanie: living room lights should be on at a low light level. It wasn't on when the light level was 12
+
+2021-02-22, 22:03:59 Stephanie: add the washing machine to the system

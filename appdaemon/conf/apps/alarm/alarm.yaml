@@ -5,7 +5,7 @@ alarm_controller:
   dependencies: 
     - custom_logger
     - notifier
-    # - security
+    - security
     - alarm
     - presence
 

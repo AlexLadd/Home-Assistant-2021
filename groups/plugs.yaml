@@ -1,0 +1,7 @@
+
+# Plugs:
+
+plugs_master:
+  name: "Plugs"
+  entities:
+    - switch.sonoff_s31_washing_machine_relay

@@ -1,0 +1,13 @@
+
+# Indoor Temperature Sensors:
+
+indoor_temp_sensors_master:
+  name: "Indoor Temperature Sensors"
+  entities:
+    - sensor.hue_motion_study_temperature
+    - sensor.hue_motion_study_2_temperature
+    - sensor.hue_motion_kitchen_temperature
+    - sensor.hue_motion_master_bedroom_temperature
+    - sensor.entryway_temperature
+    - sensor.master_bathroom_motion_sensor_temperature
+    - sensor.living_room_motion_sensor_temperature

@@ -1,0 +1,50 @@
+
+# Zwave Status Sensors:
+
+zwave_status_sensors_master:
+  name: "Zwave Status Sensors"
+  entities:
+    - zwave.elexa_consumer_products_inc_dome_door_window_sensor
+    - zwave.elexa_consumer_products_inc_dome_door_window_sensor_2
+    - zwave.front_door_sensor
+    - zwave.kitchen_door_sensor
+    - zwave.living_room_motion_sensor
+    - zwave.master_bathroom_motion_sensor_zwave
+    - zwave.unknown_node_15
+    - zwave.zooz_zst10_s2_z_wave_plus_usb_stick
+
+
+# Zwave Misc Sensors:
+
+zwave_misc_sensors_master:
+  name: "Zwave Misc Sensors"
+  entities:
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_sourcenodeid
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_access_control
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_sourcenodeid_2
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_access_control_2
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_alarm_type
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_alarm_level
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_alarm_type_4
+    - sensor.elexa_consumer_products_inc_dome_door_window_sensor_alarm_level_4
+    - sensor.kitchen_door_window_sensor_alarm_type
+    - sensor.kitchen_door_window_sensor_alarm_level
+    - sensor.kitchen_door_window_sensor_access_control
+    - sensor.front_door_window_sensor_sourcenodeid
+    - sensor.kitchen_door_window_sensor_sourcenodeid
+    - sensor.front_door_window_sensor_alarm_type
+    - sensor.front_door_window_sensor_alarm_level
+    - sensor.front_door_window_sensor_access_control
+    - binary_sensor.zooz_master_bathroom_motion_sensor
+    - sensor.master_bathroom_motion_sensor_homehealth
+    - sensor.master_bathroom_motion_sensor_clock
+    - sensor.master_bathroom_motion_sensor_emergency
+    - sensor.master_bathroom_motion_sensor_burglar
+    - sensor.master_bathroom_motion_sensor_sourcenodeid
+    - sensor.master_bathroom_motion_sensor_alarm_type
+    - sensor.master_bathroom_motion_sensor_alarm_level
+    - sensor.living_room_motion_sensor_ultraviolet
+    - sensor.living_room_motion_sensor_sourcenodeid
+    - sensor.living_room_motion_sensor_burglar
+    - sensor.living_room_motion_sensor_alarm_type
+    - sensor.living_room_motion_sensor_alarm_level

@@ -117,7 +117,7 @@ class PC(BaseApp):
     if self.dark_mode:
       self.cancel_timer(self.handle_front_lights)
       lts = ['outside_carport', 'kitchen_door']
-      self.lights.turn_lights_on(lts)
+      self.lights.turn_light_on(lts)
       self.handle_front_lights = self.run_in(lambda *_: self.lights.turn_light_off(lts), LIGHTS_ON_WHEN_HOME_TIME)
 
 

@@ -1,0 +1,17 @@
+
+# Octoprint Sensors:
+
+octoprint_sensors_master:
+  name: "Octoprint Sensors"
+  entities:
+    - sensor.octoprint_actual_tool0_temp
+    - sensor.octoprint_target_tool0_temp
+    - sensor.octoprint_actual_bed_temp
+    - sensor.octoprint_target_bed_temp
+    - sensor.octoprint_current_state
+    - sensor.octoprint_job_percentage
+    - sensor.octoprint_time_remaining
+    - sensor.octoprint_time_elapsed
+    - binary_sensor.octoprint_printing
+    - binary_sensor.octoprint_printing_error
+
