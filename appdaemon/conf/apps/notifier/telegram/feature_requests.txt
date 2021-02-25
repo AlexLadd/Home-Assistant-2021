@@ -21,9 +21,13 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
   -> DONE - Upped to 15 minutes
 
 2021-02-20, 15:33:43 Stephanie: when the kitchen/ front door is open, tts
+  -> ?????????????????????????????????
 
 2021-02-20, 15:34:40 Stephanie: when both of us are asleep, is the alarm on?
+  -> DONE - Added alarm & security modules
 
 2021-02-22, 17:32:09 Stephanie: living room lights should be on at a low light level. It wasn't on when the light level was 12
+  -> DONE - Added lux_threshold to living_room fan & lamps
 
 2021-02-22, 22:03:59 Stephanie: add the washing machine to the system
+  -> DONE - Added Sonoff S31 to washer and created appliance/washer modules

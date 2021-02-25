@@ -158,6 +158,8 @@ lights:
       aliases:
         - master bathroom ceiling
       entity_id: light.master_bathroom_ceiling
+      light_disable_states: 
+        - input_boolean.master_tub_in_use, ==, on
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
         brightness: 100
@@ -169,6 +171,8 @@ lights:
         - master bathroom tub
       entity_id: light.master_bathroom_tub
       # switch_entity_id: switch.master_bathroom_tub
+      light_disable_states: 
+        - input_boolean.master_tub_in_use, ==, on
       child_bulbs:
         - light.hue_ambiance_spot_3
         - light.hue_ambiance_spot_4
@@ -215,6 +219,8 @@ lights:
         - light.hue_color_lamp_21
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
+        use_lux: 'sensor.average_light_level'
+        lux_threshold: 75
     living_room_lamps:
       entity_id: light.living_room_lamps
       parent_light: living_room
@@ -223,6 +229,8 @@ lights:
         - light.hue_color_lamp_8
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
+        use_lux: 'sensor.average_light_level'
+        lux_threshold: 75
     living_room_light_strip:
       aliases:
         - living room light strip

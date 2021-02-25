@@ -7,6 +7,7 @@
   -> FIXED - turn_light_on controller class was missing transition parameter to turn_light_off in light class
 
 2021-02-16, 04:23:05 Stephanie: laundry room and pantry light were dim
+  -> POTENTIAL FIX: FEB 20: Lots of little light bug fixes
 
 2021-02-16, 04:23:06 Alex: Master fan didn't turn off when first person set to asleep
   -> FIXED - turn_light_on controller class was missing transition parameter to turn_light_off in light class

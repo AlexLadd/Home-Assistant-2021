@@ -6,6 +6,8 @@ status_sensors_master:
   entities:
     - binary_sensor.remote_ui
     - binary_sensor.updater
+    - sensor.ups_status
+    - sensor.ups_status_data
     - binary_sensor.sonoff_rf_bridge_status
     - binary_sensor.sonoff_rf_bridge_2_status
     - binary_sensor.sonoff_s31_washing_machine

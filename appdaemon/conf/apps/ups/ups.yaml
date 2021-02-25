@@ -1,0 +1,7 @@
+
+ups:
+  module: ups
+  class: UPS
+  dependencies:
+    - custom_logger
+    - notifier

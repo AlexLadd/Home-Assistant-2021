@@ -19,7 +19,7 @@ class AlarmController(BaseApp):
 
   def _triggered_callback(self, entity, attribute, old, new, kwargs):
     # Securiy app handles the emergency mode actions when alarm is triggered
-    # self.sm.turn_on_emergency_mode()
+    self.sm.turn_on_emergency_mode()
     pass
 
 

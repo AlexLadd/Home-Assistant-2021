@@ -13,6 +13,7 @@ import textwrap
 # TODO:
 #   - Save previous app threshold cutoff so that it only changes when specified by the app in the future
 #   - Add looping message history list (that saved to file?)
+#   - Create event for telegram notify when error/warning message received for logger
 
 # Minimum level of logging output (inclusive)
 DEFAULT_LOGGER_CUTOFF = 'DEBUG'

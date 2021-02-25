@@ -8,7 +8,6 @@ Note: This app does not use Lights app to turn on/off because it is too slow and
 
 from base_app import BaseApp
 import datetime
-# from utils import list_to_pretty_print # This doesn;t exist in utils right now
 
 # TODO:
 
@@ -19,14 +18,14 @@ LIGHT_SWITCHES = 'group.light_switches_master'
 
 DEFAULT_VACANCY_MONITOR_FREQUENCY = 12*60*60
 
-NOTIFY_TARGET = 'alex'
+NOTIFY_TARGET = 'status'
 NOTIFY_TITLE = 'Security'
 
 
 class SecurityManager(BaseApp):
 
   def setup(self):
-    self.listen_state(self.test,'input_boolean.ad_testing_1')
+    # self.listen_state(self.test,'input_boolean.ad_testing_1')
 
     self.alarm = self.get_app('alarm')
     # self.garage = self.get_app('garage')
@@ -49,7 +48,7 @@ class SecurityManager(BaseApp):
       self.start_security_monitoring(frequency=60*60)
 
     # Listen for emergency mode (TODO: LOTS OF TESTING FIRST - THIS COULD GO OFF IN THE MIDDLE OF THE NIGHT)
-    # self.listen_state(self._emergency_mode_on_callback, self.const.EMERGENCY_MODE_BOOLEAN)
+    self.listen_state(self._emergency_mode_on_callback, self.const.EMERGENCY_MODE_BOOLEAN)
 
 
   @property
@@ -60,10 +59,10 @@ class SecurityManager(BaseApp):
   @property
   def house_locked_down(self):
     """ Verify the house locked down correctly """
-    return len(self._house_lockdown_entities()) == 0
+    return len(self.house_lockdown_entities()) == 0
 
 
-  def _house_lockdown_entities(self):
+  def house_lockdown_entities(self):
     """ Returns a list of entites that are unsecure if any """
     if self.presence.guest_mode:
       return []
@@ -96,10 +95,10 @@ class SecurityManager(BaseApp):
   @property
   def vacation_mode_locked_down(self):
     """ Verify house is secure - Used when house is in vacation mode """
-    return len(self._vacation_mode_lockdown_entities()) == 0
+    return len(self.vacation_mode_lockdown_entities()) == 0
 
 
-  def _vacation_mode_lockdown_entities(self):
+  def vacation_mode_lockdown_entities(self):
     """ Returns a list of entites that are unsecure if any - Used when house is in vacation mode """
     if self.presence.guest_mode:
       return []
@@ -107,7 +106,7 @@ class SecurityManager(BaseApp):
     unsecure = []
 
     if not self.house_locked_down:
-      unsecure = self._house_lockdown_entities()
+      unsecure = self.house_lockdown_entities()
     if not self.dw.windows_closed:
       unsecure.append('windows')
     # if not self.lights.all_lights_off_security_check:
@@ -115,6 +114,11 @@ class SecurityManager(BaseApp):
       if 'lights' not in unsecure:
         unsecure.append('lights')
     return unsecure
+
+
+  def disarm_security_system(self):
+    """ All modules interacting with the alarm system should use the security module for consistency """
+    self.alarm.disarm_alarm()
 
 
   def lockdown_house(self):
@@ -137,12 +141,39 @@ class SecurityManager(BaseApp):
 
 
   def get_unsecure_entities(self, light_check=True, window_check=True, door_check=True):
-    """ Returns a human readable state of the unsecure entities in the house """
-    # This method should not presume the intentions based on the household state
-    # For example if guest_mode is on or not
+    """ 
+    Returns a human readable state of the unsecure entities in the house 
+    
+    This method simply checks what is unsecure/secure regardless of current house state
+    """
+    res = ''
+    if window_check and door_check:
+      if not self.dw.everything_closed:
+        res = self.dw.entry_point_check() # Will get both windows and doors
+    elif window_check:
+      if not self.dw.windows_closed:
+        res = self.dw.entry_point_check(door_check=False)
+    elif door_check:
+      if not self.dw.doors_closed:
+        res = self.dw.entry_point_check(window_check=False)
 
-    # TODO: Create light method, DW method that returns which doors and windows are open
-    return ''
+    if light_check:
+      if self.lights.is_on():
+        res += ' ' + self.lights.light_check()
+
+    # Misc household checks
+    r = []
+    # if not self.dw.front_door_secure:
+    #   r.append('front door lock')
+    # if self.garage.is_open:
+    #   r.append('garage door')
+    if not self.alarm.armed:
+      r.append('alarm')
+    if self.living_room_tv.is_on:
+      r.append('living room TV')
+
+    res += ' ' + self.utils.list_to_pretty_print(r, 'unsecure')
+    return res.strip()
 
 
   def stop_security_monitoring(self):
@@ -170,20 +201,20 @@ class SecurityManager(BaseApp):
   def _security_monitoring(self, kwargs):
     """ Verify that the house stays locked down """
     self._logger.log(f'_security_monitoring called')
-    # if self.anyone_home() and self.sleep.someone_awake:
-    #   self._logger.log('Security monitoring is running while someone is home and awake, shutting down now.', level='WARNING')
-    #   self.stop_security_monitoring()
-    #   return
+    if self.anyone_home() and self.sleep.someone_awake:
+      self._logger.log('Security monitoring is running while someone is home and awake, shutting down now.', level='WARNING')
+      self.stop_security_monitoring()
+      return
 
     msg = ''
     unsecure = []
 
     if not self.presence.vacation_mode:
-      unsecure = self._house_lockdown_entities()
+      unsecure = self.house_lockdown_entities()
       if len(unsecure) > 0:
         msg = 'Security monitoring check. '
     else:
-      unsecure = self._vacation_mode_lockdown_entities()
+      unsecure = self.vacation_mode_lockdown_entities()
       if len(unsecure) > 0:
         msg = 'Security monitoring check while in vacation mode. '
 
@@ -215,6 +246,9 @@ class SecurityManager(BaseApp):
 
   def _emergency_mode_on_callback(self, entity, attribute, old, new ,kwargs):
     """ Initialize emergency mode actions - flash lights and repeat TTS announcements """
+    self._logger.log(f'Emergency mode loop has been trigger but is not implemented! Nothing will happen.')
+    return
+
     if self.utils.valid_input(old, new):
       if self.emergency_mode:
         self._logger.log('Emergency mode events triggered.', level='INFO')
@@ -265,13 +299,16 @@ class SecurityManager(BaseApp):
 
     # self._test_lockdown_secure_states()
 
+    r = self.get_unsecure_entities()
+    self._logger.log(f'Unsecure stuff: {r}')
+
 
   def _test_lockdown_secure_states(self):
-    res = self._vacation_mode_lockdown_entities()
-    self._logger.log(f'_vacation_mode_lockdown_entities: {res}')
+    res = self.vacation_mode_lockdown_entities()
+    self._logger.log(f'vacation_mode_lockdown_entities: {res}')
 
-    res = self._house_lockdown_entities()
-    self._logger.log(f'_house_lockdown_entities: {res}')
+    res = self.house_lockdown_entities()
+    self._logger.log(f'house_lockdown_entities: {res}')
 
     res = self.get_unsecure_entities()
     self._logger.log(f'get_unsecure_entities: {res}')

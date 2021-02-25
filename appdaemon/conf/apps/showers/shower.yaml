@@ -12,6 +12,17 @@ master_shower:
     - custom_logger
     - lights
 
+master_tub:
+  module: master_tub
+  class: MasterTub
+  options:
+    monitor_entity: input_boolean.master_tub_in_use
+    tub_scene: scene.dummy
+    disabled_lights:
+      - master_bathroom_ceiling
+      - master_bathroom_tub
+    timeout: 30*60
+
 main_shower:
   module: shower
   class: Shower

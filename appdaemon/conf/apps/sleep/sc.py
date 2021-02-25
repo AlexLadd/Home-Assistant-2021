@@ -44,8 +44,7 @@ class AwakeAsleepController(BaseApp):
     self.climate = self.get_app('climate')
     self.notifier = self.get_app('notifier')
     self.lights = self.get_app('lights')
-    # self.alarm = self.get_app('alarm')
-    # self.sm = self.get_app('security')
+    self.sm = self.get_app('security')
     # self.messages = self.get_app('messages')
     self.se = self.get_app('spotify_engine')
 
@@ -77,8 +76,8 @@ class AwakeAsleepController(BaseApp):
   def _last_person_asleep(self):
     self._logger.log('Last person asleep, everyone is asleep.')
     self.lights.turn_all_off() # Use this until security manager is setup
-    # self.sm.lockdown_house()
-    # self.sm.start_security_monitoring(frequency=SECURITY_MONITORING_FREQUENCY)
+    self.sm.lockdown_house()
+    self.sm.start_security_monitoring(frequency=SECURITY_MONITORING_FREQUENCY)
     self.run_in(self._just_asleep_check, 45) # Give time for lockdown to complete before checking
 
 
@@ -102,7 +101,7 @@ class AwakeAsleepController(BaseApp):
 
   def _first_person_awake(self):
     self._logger.log('First person awake.')
-    # self.sm.stop_security_monitoring()
+    self.sm.stop_security_monitoring()
 
 
   def _last_person_awake(self):
@@ -166,7 +165,7 @@ class AwakeAsleepController(BaseApp):
   def _person_state_change(self, person, state):
     if state == 'on': # awake
       self._logger.log(f'{person.title()} is awake.')
-      # self.alarm.disarm()
+      self.sm.disarm_security_system()
       if self.now_is_between(DAY_START, DAY_END):
         self._morning_notify(person.lower())
     elif state == 'off': # asleep

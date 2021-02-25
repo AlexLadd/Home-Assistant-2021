@@ -1,7 +1,6 @@
 
 from base_app import BaseApp
 import datetime
-from utils import last_changed, valid_input
 
 LIGHT_OFF_NO_MOTION_TIME = 3*60
 
@@ -52,13 +51,13 @@ class Shower(BaseApp):
     if self.is_on:
       self.log(f'{self} turned off.')
       self.turn_off(self.shower_boolean)
-      if last_changed(self, self.motion_sensor) > LIGHT_OFF_NO_MOTION_TIME:
+      if self.utils.last_changed(self, self.motion_sensor) > LIGHT_OFF_NO_MOTION_TIME:
         # No motion for a while, turn light off
         self.lights.turn_light_off(self.light_off)
 
 
   def _state_change(self, entity, attribute, old, new, kwargs):
-    if valid_input(old, new):
+    if self.utils.valid_input(old, new):
       if new == 'on':
         self._turn_on_boolean() 
       elif new == 'off':

@@ -90,7 +90,7 @@ class PC(BaseApp):
     """ Plays a Spotify song if the front door is opened before the timeout is reached """
     if self.sleep.everyone_awake or self.now_is_between(self.const.DEFAULT_WAKEUP, self.const.DEFAULT_ASLEEP):
       # self.se.play_song_on_event(song, 'family_room', FRONT_DOOR_SENSOR, old_state='off', new_state='on', timeout=GREETING_SONG_TIMEOUT)
-      self.listen_state(lambda *_: self.se.play_song(self.se._map_song(song, 2), 'kitchen', ), self.dw.get_door_sensor('kitchen'), old='off', new='on', timeout=GREETING_SONG_TIMEOUT, oneshot=True)
+      self.listen_state(lambda *_: self.se.play_song(self.se._map_song(song, 2), 'kitchen', ), self.dw.map_door_to_entity('kitchen'), old='off', new='on', timeout=GREETING_SONG_TIMEOUT, oneshot=True)
     else:
       self._logger.log('Not playing a greeting song because it is too late or someone is sleeping.')
 
@@ -113,6 +113,7 @@ class PC(BaseApp):
     """ Called anytime anyone gets home (including a guest) """
     self._logger.log('Someone got home.')
     # self.alarm.disarm() # THIS SHOULD BE DONE IN SECURITY FOR CONSISTANCY!!!
+    self.sm.disarm_security_system()
 
     if self.dark_mode:
       self.cancel_timer(self.handle_front_lights)
@@ -126,7 +127,7 @@ class PC(BaseApp):
     
     Triggered when occupancy is switched 'on' -> 'off' """
     self._logger.log('Last person left, nobody home.', level='INFO')
-    # self.sm.lockdown_house()
+    self.sm.lockdown_house()
 
 
   def _single_person_left(self, kwargs):
@@ -200,7 +201,7 @@ class PC(BaseApp):
       if self.presence.steph_away:
         self.presence.turn_off_occupancy()
       elif self.sleep.someone_asleep:
-        # self.sm.lockdown_house()
+        self.sm.lockdown_house()
         pass
       self.turn_on(self.const.ALEX_AWAY_BOOLEAN)
   
@@ -226,7 +227,7 @@ class PC(BaseApp):
       if self.presence.alex_away:
         self.presence.turn_off_occupancy()
       elif self.sleep.someone_asleep:
-        # self.sm.lockdown_house()
+        self.sm.lockdown_house()
         pass
       self.turn_on(self.const.STEPH_AWAY_BOOLEAN)
 
@@ -262,10 +263,10 @@ class PC(BaseApp):
     if self.utils.valid_input(old, new):
       if new == 'on':
         self._first_person_home()
-        # self.sm.stop_security_monitoring()
+        self.sm.stop_security_monitoring()
       elif new == 'off':
         self._last_person_left_home()
-        # self.sm.start_security_monitoring(start_offset=5)
+        self.sm.start_security_monitoring(start_offset=5)
 
 
   def _guest_mode_state_change(self, entity, attribute, old, new, kwargs):

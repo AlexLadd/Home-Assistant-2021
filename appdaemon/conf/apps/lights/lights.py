@@ -248,6 +248,18 @@ class LightController(BaseApp):
     return len(self.lights_on_list()) > 0
 
 
+  def light_check(self):
+    """ Returns a human readable message with the lights that are on as a string of friendly_names """
+    open = [self.friendly_name(l) for l in self.lights_on_list()]
+
+    if len(open) == 0:
+      result = "All the lights are off"
+    else:
+      result = self.utils.list_to_pretty_print(open, 'on')
+
+    return result.lower().capitalize()
+
+
   def lights_on_list(self):
     """ Return a list of lights that are on """
     on = []
@@ -255,9 +267,6 @@ class LightController(BaseApp):
       entity_id = lt_obj.entity_id
       if entity_id is not None and self.get_state(entity_id) == 'on':
         on.append(entity_id)
-      # switch_entity_id = lt_obj.switch_entity_id
-      # if switch_entity_id is not None and self.get_state(switch_entity_id) == 'on':
-      #   on.append(entity_id)
     return on
 
 

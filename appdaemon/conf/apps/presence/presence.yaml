@@ -2,27 +2,19 @@
 presence:
   module: presence
   class: Presence
-  # global_dependencies:
-  #   - base_app
-  #   - const
-  #   - utils
   dependencies: 
     - custom_logger
   
 pc:
   module: pc
   class: PC
-  # global_dependencies:
-  #   - const
-  #   - utils
   dependencies:
     - custom_logger
     - notifier
     - presence
-    # - alarm
     - doors_windows
     - sleep
-    # - security
+    - security
     - spotify_engine
     - lights
     # - garage
