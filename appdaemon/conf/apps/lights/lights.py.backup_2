@@ -1,4 +1,7 @@
 """
+TODO: 
+  - Add in config check for colour/dimable and warn  user that some options are not available when the bulb isnt colour/dimable
+
 Various options: (TODO)
   - circadian
   - vacation
@@ -61,7 +64,10 @@ CONF_TRANSITION = 'transition'
 CONF_BRIGHTNESS = 'brightness'
 CONF_COLOUR = 'colour'
 
-CONF_DEFAULT_LOG_LEVEL = 'DEBUG'
+CONF_IS_COLOUR = 'is_colour'
+CONF_IS_DIMABLE = 'is_dimable'
+
+CONF_DEFAULT_LOG_LEVEL = 'NOTSET'
 CONF_DEFAULT_TRANSITION = 1
 CONF_DEFAULT_BRIGHTNESS = 100
 CONF_DEFAULT_COLOUR = 'white'
@@ -108,10 +114,10 @@ PROPERTIES_SCHEMA = vol.Schema(
     vol.Optional(CONF_LUX_THRESHOLD, default=CONF_DEFAULT_LUX_THRESHOLD): int,
 
     vol.Optional(CONF_SLEEP_CONDITION, default=[]): utils_validation.ensure_constraint_list,
-    vol.Optional(CONF_SLEEP_LIGHTS): utils_validation.entity_id_list,
+    vol.Optional(CONF_SLEEP_LIGHTS, default=[]): utils_validation.entity_id_list,
     vol.Optional(CONF_SLEEP_TRANSITION, default=None): utils_validation.try_parse_int,
     vol.Optional(CONF_SLEEP_BRIGHTNESS, default=None): utils_validation.try_parse_int,
-    vol.Optional(CONF_SLEEP_COLOUR): str,
+    vol.Optional(CONF_SLEEP_COLOUR, default=None): utils_validation.try_parse_int,
 
     vol.Optional(CONF_DAY_THRESHOLDS, default=CONF_DEFAULT_DAY_THRESHOLDS): TIME_SCHEMA_TIME,
     vol.Optional(CONF_TRANSITION, default=CONF_DEFAULT_TRANSITION): vol.Any(int, TIME_SCHEMA_INT),
@@ -151,10 +157,8 @@ LIGHT_SCHEMA = {
           vol.Optional(CONF_TAKE_OVER_CONTROL, default=True): bool,
           vol.Optional(CONF_DETECT_NON_HA_CHANGES, default=True): bool,
 
-
           vol.Optional(CONF_PROPERTIES): PROPERTIES_SCHEMA,
           vol.Optional(CONF_OPTIONS): OPTION_SCHEMA,
-          # vol.Optional(CONF_DEFAULTS): DEFAULT_SCHEMA,
         }
       ),
     })
@@ -166,9 +170,9 @@ class LightController(BaseApp):
   APP_SCHEMA = BaseApp.APP_SCHEMA.extend(LIGHT_SCHEMA)
 
   def setup(self):
-    self.listen_state(self.test, 'input_boolean.ad_testing_1')
-    self.listen_state(self.test2, 'input_boolean.ad_testing_2')
-    self.listen_state(self.test3, 'input_boolean.ad_testing_3')
+    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
+    # self.listen_state(self.test2, 'input_boolean.ad_testing_2')
+    # self.listen_state(self.test3, 'input_boolean.ad_testing_3')
 
     self.seasons = self.get_app('seasons')
 
@@ -178,21 +182,23 @@ class LightController(BaseApp):
     self._process_cfg(self.cfg)
     self._setup_lights(self._light_data)
 
-    # res = self.get_state('light.study_ceiling_light', attribute='context')
-    # self._logger.log(f'Study: {res}')
-
-    # import circadian
-    # bt = circadian.calc_brightness(self)
-    # self._logger.log(f'Plug in data: {bt}')
-    # bt = circadian.calc_rgb(self)
-    # self._logger.log(f'Plug in data: {bt}')
-
 
   def _is_colour(self, light):
-    return self.get_state(light, attribute='all')['attributes'].get('min_mireds', None) is not None
+    try:
+      return self.get_state(light, attribute='all')['attributes'].get('min_mireds', None) is not None
+    except TypeError as e:
+      # Light does not exists?
+      self._logger.log(f'Failed to check if light _is_colour ("{light}"): {e}')
+    return False
+    
 
   def _is_dimable(self, light):
-    return len(self.get_state(light, attribute='all')['attributes']) > 1
+    try:
+      return len(self.get_state(light, attribute='all')['attributes']) > 1
+    except TypeError as e:
+      # Light does not exists?
+      self._logger.log(f'Failed to check if light _is_dimable ("{light}"): {e}')
+    return False
   
 
   def _process_cfg(self, config):
@@ -218,8 +224,12 @@ class LightController(BaseApp):
         self._light_data[eid][CONF_FRIENDLY_NAME] = name.replace('_', ' ').title()
 
       # Add if colour & dimable are available for this light. Saves checking continuously later
-      self._light_data[eid]['is_colour'] = self._is_colour(data[CONF_ENTITY_ID])
-      self._light_data[eid]['is_dimable'] = self._is_dimable(data[CONF_ENTITY_ID])
+      self._light_data[eid][CONF_IS_COLOUR] = self._is_colour(data[CONF_ENTITY_ID])
+      self._light_data[eid][CONF_IS_DIMABLE] = self._is_dimable(data[CONF_ENTITY_ID])
+
+      # sleep_lights == entity_id when it isn't defined
+      if not data.get(CONF_SLEEP_LIGHTS, []):
+        self._light_data[eid][CONF_PROPERTIES][CONF_SLEEP_LIGHTS] = [data[CONF_ENTITY_ID]]
 
 
   def _setup_lights(self, config):
@@ -227,6 +237,37 @@ class LightController(BaseApp):
     self._lights_obj = {}
     for name, settings in config.items():
       self._lights_obj[name.lower()] = Light(self, settings)
+
+
+  def is_on(self, entity=None):
+    """ Check if a light is on, default check is all lights """
+    if entity is not None:
+      return bool(self.get_state(entity) == 'on')
+
+    # Default is to check all lights
+    return len(self.lights_on_list()) > 0
+
+
+  def light_check(self):
+    """ Returns a human readable message with the lights that are on as a string of friendly_names """
+    open = [self.friendly_name(l) for l in self.lights_on_list()]
+
+    if len(open) == 0:
+      result = "All the lights are off"
+    else:
+      result = self.utils.list_to_pretty_print(open, 'on')
+
+    return result.lower().capitalize()
+
+
+  def lights_on_list(self):
+    """ Return a list of lights that are on """
+    on = []
+    for name, lt_obj in self._lights_obj.items():
+      entity_id = lt_obj.entity_id
+      if entity_id is not None and self.get_state(entity_id) == 'on':
+        on.append(entity_id)
+    return on
 
 
   def map_light_to_entity(self, light):
@@ -254,37 +295,104 @@ class LightController(BaseApp):
     return light
 
 
-  def turn_light_on(self, light, colour=None, brightness=None, transition=None, override=False):
-    entity = self.map_light_to_entity(light)
-    light_obj = self._lights_obj.get(entity, None)
-    if light_obj:
-      light_obj.turn_light_on(colour, brightness, transition, override)
-    else:
-      if not self.entity_exists(light):
-        self._logger.log(f'Could not find light object for {entity} ({light}). No valid entity id was found.', level='WARNING')
+  def disable_light(self, light, enable_entity=None, enable_state=None):
+    """ If defined, used enable_entity & enable_state to re-enable light when entity enters specified state """
+    if isinstance(light, str):
+      light = [light]
+    
+    for lt in light:
+      entity = self.map_light_to_entity(lt)
+      light_obj = self._lights_obj.get(entity, None)
+      if light_obj:
+        light_obj.disable_light()
       else:
-        self._logger.log(f'Could not find light object for {entity} ({light}). Turning on light to previous state using self.turn_on().', level='WARNING')
-        self.turn_on(light)
+        self._logger.log(f'Could not find light object for {entity} ({lt}). It will not be disabled.', level='WARNING')
+
+    if any([enable_entity, enable_state]):
+      if enable_entity is not None and enable_state is not None:
+        # Only run this listen once, than cancel it (onshot=True)
+        self.listen_state(lambda *_: self.enable_light(light), enable_entity, new=enable_state, oneshot=True)
+      else:
+        self._logger.log(f'enable_entity ({enable_entity}) and enable_state ({enable_state}) are both required.')
+
+
+  def enable_light(self, light):
+    if isinstance(light, str):
+      light = [light]
+    
+    for lt in light:
+      entity = self.map_light_to_entity(lt)
+      light_obj = self._lights_obj.get(entity, None)
+      if light_obj:
+        light_obj.enable_light()
+      else:
+        self._logger.log(f'Could not find light object for {entity} ({lt}). It will not be enabled.', level='WARNING')
+
+
+  def turn_light_on(self, light, colour=None, brightness=None, transition=None, scene=None, override=False):
+    if isinstance(light, str):
+      light = [light]
+    
+    for lt in light:
+      entity = self.map_light_to_entity(lt)
+      light_obj = self._lights_obj.get(entity, None)
+      if light_obj:
+        light_obj.turn_light_on(colour, brightness, transition, scene, override)
+      else:
+        if not self.entity_exists(lt):
+          self._logger.log(f'Could not find light object for {entity} ({lt}). No valid entity id was found and nothing will be turned on.', level='WARNING')
+        else:
+          self._logger.log(f'Could not find light object for {entity} ({lt}). Turning on light to previous state using self.turn_on().', level='WARNING')
+          self.turn_on(lt)
+
+
+  def turn_all_off(self):
+    """ Turn off all lights in the house 
+    USE WITH CAUTION, this will turn off all lights regardless of state or settings 
+    """
+    self._logger.log(f'Turning off all house lights')
+    self.turn_off('light.all_hue_lights')
+
+    # Turn off all switches
+    for name, lt in self._lights_obj.items():
+      if lt.entity_id.startswith('switch.'):
+        # self._logger.log(f'Turning off {name} ({lt.entity_id})')
+        # lt.turn_light_off(override=True)
+        self.turn_off(lt.entity_id)
 
 
   def turn_light_off(self, light, transition=None, override=False):
-    entity = self.map_light_to_entity(light)
-    light_obj = self._lights_obj.get(entity, None)
-    if light_obj:
-      light_obj.turn_light_off(override)
-    else:
-      self._logger.log(f'Could not find light object for {entity} ({light}). Turning on light to previous state using self.turn_on().', level='WARNING')
-      self.turn_on(light)
+    if isinstance(light, str):
+      light = [light]
+    
+    for lt in light:
+      entity = self.map_light_to_entity(lt)
+      light_obj = self._lights_obj.get(entity, None)
+      if light_obj:
+        light_obj.turn_light_off(transition, override)
+      else:
+        if not self.entity_exists(lt):
+          self._logger.log(f'Could not find light object for {entity} ({lt}). No valid entity id was found and nothing will be turned off.', level='WARNING')
+        else:
+          self._logger.log(f'Could not find light object for {entity} ({lt}). Turning on light to previous state using self.turn_off().', level='WARNING')
+          self.turn_off(lt)
 
 
-  def toggle_light(self, light, colour=None, brightness=None, transition=None, override=False):
-    entity = self.map_light_to_entity(light)
-    light_obj = self._lights_obj.get(entity, None)
-    if light_obj:
-      light_obj.toggle_light(override)
-    else:
-      self._logger.log(f'Could not find light object for {entity} ({light}). Turning on light to previous state using self.turn_on().', level='WARNING')
-      self.turn_on(light)
+  def toggle_light(self, light, colour=None, brightness=None, transition=None, scene=None, override=False):
+    if isinstance(light, str):
+      light = [light]
+    
+    for lt in light:
+      entity = self.map_light_to_entity(lt)
+      light_obj = self._lights_obj.get(entity, None)
+      if light_obj:
+        light_obj.toggle_light(colour, brightness, transition, scene, override)
+      else:
+        if not self.entity_exists(lt):
+          self._logger.log(f'Could not find light object for {entity} ({lt}). No valid entity id was found and nothing will be toggled.', level='WARNING')
+        else:
+          self._logger.log(f'Could not find light object for {entity} ({light}). Toggling light using self.toggle().', level='WARNING')
+          self.toggle(light)
 
 
   # def terminate(self):
@@ -298,36 +406,22 @@ class LightController(BaseApp):
     # self.toggle_light('light.master_fan_light')
 
     # res = self.get_state('switch.kitchen_ceiling', attribute='all')
-    res = self.map_light_to_entity('kitchen')
-    self._logger.log(f'Light -> Entity: {res}')
-    res = self.map_to_light('kitchen')
-    self._logger.log(f'Input -> Alias: {res}')
+    # res = self.map_light_to_entity('kitchen')
+    # self._logger.log(f'Light -> Entity: {res}')
+    # res = self.map_to_light('kitchen')
+    # self._logger.log(f'Input -> Alias: {res}')
 
-  def test2(self, entity, attribute, old, new, kwargs):
-    # self.log(f'Testing Motion Module: ') 
-    # self.turn_light_on('switch.kitchen_ceiling')
+    # lt = 'light.laundry_room'
+    # entity = self.map_light_to_entity(lt)
+    # light_obj = self._lights_obj.get(entity, None)
 
-    light = 'study'
-    entity = self.map_light_to_entity(light)
-    lo = self._lights_obj.get(entity, None)
-    sc = lo.get_transition()
-    self._logger.log(f'{light} transition time currently: {sc}.')
+    # b = light_obj.brightness
+    # self._logger.log(f'Brightness: {b}')
+    # b = light_obj.is_dimable
+    # self._logger.log(f'Dimable: {b}')
 
-    sc = lo.sleep_brightness
-    self._logger.log(f'{light} brightness: {sc}. sleep condition: {lo.sleep_condition}')
-
-
-  def test3(self, entity, attribute, old, new, kwargs):
-    self._logger.log(f'Testing Motion Module (3): ') 
-    # light = 'study'
-    # entity = self.map_light_to_entity(light)
-    # lo = self._lights_obj.get(entity, None)
-
-    # sc = lo._turn_on_action()
-    # self._logger.log(f'{light} _turn_on_action result: {sc}.')
-
-    self.turn_light_on('study')
-    self._logger.log(f'study turn_light_on called.')
+    
+    self.turn_light_on('light.hue_lightstrip_plus_1', colour=[183,200,255], brightness=20)
 
 
 
@@ -356,12 +450,12 @@ class Light:
     self.attrs = config
 
     self._update_required = False                 # Internal flag to signal update required on next turn_on call
-    self._enabled = True                          # Is this light currently _enabled?
+    self._enabled = True                          # Flag used to manually disable/enable light
 
     self._seasonal_scene = None                   # The scene for the season if use_seasons in use
     self._holiday_scene = None                    # The scne for the holiday if use_holidays in use
 
-    self._allow_manually_adjusted = False               # Keep track of the light being turned on/off by a person (physically or from UI)
+    self._prevent_manual_adjustments = False      # Keep track of the light being turned on/off by manually (physically or from UI)
     self._should_be_on = False                    # If the light should be on based on AD calls to on/off
     self._related_light_is_on = False             # Child or parent light is on
     self._bulb_is_on = False                      # Physical state of light using get_state and than callback to track state
@@ -380,9 +474,6 @@ class Light:
 
     self._setup()
 
-    # self._logger.log(f'Parent: {self.parent_light}, type: {type(self.parent_light)}')
-    # self._logger.log(self.attrs)
-
 
   def _setup(self):
     # Initially sync app with current light state
@@ -394,7 +485,7 @@ class Light:
       self._bulb_is_on = False
       self._should_be_on = False
     else:
-      self._logger.log(f'[{self.friendly_name}] {self.entity_id} light is currently in an unknown state, current state: {state}.', level='WARNING')
+      self._logger.log(f'[{self.friendly_name}] {self.entity_id} is in an unknown state during startup, current state: "{state}".', level='WARNING')
 
     # Initially sync app switch state if there is a switch/hue bulb pair
     if self.switch_entity_id:
@@ -404,7 +495,7 @@ class Light:
       elif state and state == 'off':
         self._switch_is_on = False
       else:
-        self._logger.log(f'[{self.friendly_name}] Unknown state for {self.name} light switch or it does not exist, current state: {state}', level='WARNING')
+        self._logger.log(f'[{self.friendly_name}] {self.switch_entity_id} is in an unknown state during startup, current state: "{state}".', level='WARNING')
 
     # Listen for related lights signaling this light if they exists
     if self.parent_light or self.child_lights:
@@ -418,9 +509,11 @@ class Light:
 
     # Setup listeners for dark_mode & sleep state changes to force update when they change state
     if self.use_dark_mode is not None:
-      self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.use_dark_mode))
+      # self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.use_dark_mode))
+      self._state_handles.append(self.app.listen_state(lambda *_: self.turn_light_off(), self.use_dark_mode, new='off'))
     if self.sleep_condition is not None:
-      self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.sleep_condition_entity))
+      # self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.sleep_condition_entity))
+      self._state_handles.append(self.app.listen_state(lambda *_: self.turn_light_off(), self.sleep_condition_entity, new='on'))
 
 
   def _sync_lights(self, state):
@@ -446,45 +539,70 @@ class Light:
     self._related_light_is_on = state
 
 
-  def _should_adjust(self, override):
+  def _should_adjust(self, override, turning_on):
     """ Whether this light should be adjusted or not. Override - will bypass most conditions """
     if isinstance(override, bool) and override:
+      self._logger.log(f'{self.name} was called with override set to: {override}', level=self.log_level)
       return True
 
-    if self._allow_manually_adjusted and self.take_over_control:
-      self._logger.log(f'{self.name} light has "take over control" enable and was switched on physically, from the UI, or from GA.', level='DEBUG')
+    # TODO: Check if a parent light is "preventing manual adjustments"???? How to handle Parent/Child relationshit in this situation?
+    if self._prevent_manual_adjustments and self.take_over_control:
+      self._logger.log(f'{self.name} light has "take over control" enable and was switched on physically, from the UI, or from GA.', level=self.log_level)
       return False
   
     if not self._enabled:
-      self._logger.log(f'{self.name} light is currently disabled.', level='DEBUG')
+      self._logger.log(f'{self.name} light is currently disabled.', level=self.log_level)
       return False
 
-    # if self.use_dark_mode is not None and self.app.get_state(self.use_dark_mode) == 'off':
-    #   self._logger.log(f'{self.name} light is disable during dark mode.', level='DEBUG')
-    #   return False
-
-    if self.use_lux and self.lux_above_cutoff:
-      self._logger.log(f"{self.name} lights avg light level sensor readings ({self.app.get_state(self.use_lux)}) > cutoff ({self.lux_threshold}).", level='DEBUG')
-      return False
-
-    if self.get_brightness() == 0:
-      self._logger.log(f'{self.name} light has a brightness of 0 currently. Perhaps everyone is asleep and sleep_brightness is 0.', level='DEBUG')
+    if self.get_brightness() == 0 and turning_on:
+      self._logger.log(f'{self.name} light has a brightness of 0 currently. Perhaps everyone is asleep and sleep_brightness is 0.', level=self.log_level)
       return False
 
     if self.light_disable_states:
       for constraint in self.light_disable_states:
         if self.app.constraint_compare(constraint): 
-          self._logger.log(f'{self.name} light does not satisfy one or more of the "light_disable_states" ({self.light_disable_states}) (failed: {constraint}, result: {self.app.constraint_compare(constraint)}).', level='DEBUG')
+          self._logger.log(f'{self.name} light does not satisfy one or more of the "light_disable_states" ({self.light_disable_states}) (failed: {constraint}, result: {self.app.constraint_compare(constraint)}).', level=self.log_level)
           return False
+
+    # Check if light level below cutoff before checking dark_mode BUT AFTER EVERYTHING ELSE!
+    # lux_mode is only useful when dark_mode is in use
+    # if self.use_dark_mode is not None and self.app.get_state(self.use_dark_mode) == 'off' and self.use_lux and not self.lux_above_cutoff:
+    #   self._logger.log(f"{self.name} light level sensor readings ({self.app.get_state(self.use_lux)}) < cutoff threshold ({self.lux_threshold}).", level=self.log_level)
+    #   return True
+
+    if self.use_dark_mode is not None and self.app.get_state(self.use_dark_mode) == 'off' and turning_on:
+      # self._logger.log(f'{self.name} light is disabled during dark mode.', level=self.log_level)
+      # return False
+
+      # Check lux level when dark_mode is in use and it is daytime
+      if self.use_lux and not self.lux_above_cutoff:
+        msg = f"{self.name} light level sensor readings ({self.app.get_state(self.use_lux)}) > cutoff threshold ({self.lux_threshold}). \
+          The light will not be disabled during daytime while using dark_mode."
+        self._logger.log(msg, level=self.log_level)
+      else:
+        self._logger.log(f'{self.name} light is disabled during dark mode.', level=self.log_level)
+        return False
 
     return True
 
 
-  def turn_light_on(self, colour=None, brightness=None, kelvin=None, transition=None, override=False):
+  def disable_light(self):
+    """ Manually disable the light """
+    self._logger.log(f'[{self.name}] is disabled.', level=self.log_level)
+    self._enabled = False
+
+
+  def enable_light(self):
+    """ Manually enable the light """
+    self._logger.log(f'[{self.name}] is enabled.', level=self.log_level)
+    self._enabled = True
+
+
+  def turn_light_on(self, colour=None, brightness=None, transition=None, scene=None, override=False):
     """
     param override: Will adjust light regardless of other settings (dark_mode, _enabled, physically switch, 0 sleep brightness)
     """
-    if not self._should_adjust(override):
+    if not self._should_adjust(override, turning_on=True):
       return
 
     # ADD BACK IN AFTER TESTING
@@ -492,26 +610,19 @@ class Light:
     #   self._logger.log(f'{self.friendly_name.title()} is already on, it will not be turned on again.', level='NOTSET')
     #   return
     self._update_required = False
-
     self._sync_lights(True)
 
     # The switch must be on for the bulb(s) to work (if it exists)
     if self.switch_entity_id:
-      self._logger.log(f'[{self.name}] switch turned on ({self.switch_entity_id}).', level='DEBUG')
+      self._logger.log(f'[{self.name}] switch turning on ({self.switch_entity_id}).', level=self.log_level)
       self.app.turn_on(self.switch_entity_id)
 
-    # TODO: Logic for ***how*** the lights turn on based on the config options/properties
-    # self.app.turn_on(self.entity_id)
-    self._logger.log(f'Turning {self.friendly_name.lower()} on.')
-    self._turn_on_action()
-
+    self._turn_on_action(colour, brightness, transition, scene)
     if self._handle_light_check is None:
       self._handle_light_check = self.app.run_in(self._light_check_cb, 2)
 
 
-  
-
-  def _turn_on_action(self, entity_id=None, scene=None, kwargs={}):
+  def _turn_on_action(self, colour=None, brightness=None, transition=None, scene=None):
     """ 
     Handle logic of turning light on
 
@@ -519,130 +630,210 @@ class Light:
     """
 
     option_map = {
-      CONF_USE_CIRCADIAN: 'self.circadian_func',
-      CONF_USE_HOLIDAYS: 'self.holiday_func',
-      CONF_USE_SEASONS: 'self.season_func',
-      CONF_USE_COLOUR_LOOP: 'self.colour_loop_func',
-      CONF_USE_RANDOM_COLOURS: 'self.random_colour_func',
-      CONF_SCENE: 'self.scene_func',
+      CONF_USE_CIRCADIAN: self._turn_on_circadian,
+      CONF_USE_HOLIDAYS: self._turn_on_holiday,
+      CONF_USE_SEASONS: self._turn_on_season,
+      CONF_USE_COLOUR_LOOP: self._turn_on_colour_loop,
+      CONF_USE_RANDOM_COLOURS: self._turn_on_random_colour,
+      CONF_SCENE: self._turn_on_scene,
     }
 
-    # self._logger.log(f'Options: {self.attrs[CONF_OPTIONS]}')
-    # default_func = 'default_turn_of_operation'
-    # for name, value in self.attrs[CONF_OPTIONS].items():
-    #   if value:
-    #     op = option_map.get(name, default_func)
-    #     self._logger.log(f'[{self.name}] next option in line: {name} (func: {op})')
-    # return
-  
-    if self.use_seasons and self.app.seasons.is_season:
-      self._logger.log(f'Turning {self.name} on using seasonal scene.', level='DEBUG')
-      if not self.child_bulbs:
-        self._logger.log(f'[{self.name}] does not have any child bulbs so it cannot use a seasonal scene.', level='WARNING')
-      else:
-        # Try to create/get a seasonal scene if we don't have it yet
-        self._seasonal_scene = self.app.seasons.get_seasonal_scene(self.name, self.child_bulbs, self.get_brightness(), overwrite=False)
-        if self._seasonal_scene:
-          self._logger.log(f'Turning {self.name} onto seasonal colours using the scene: {self._seasonal_scene}.', level='DEBUG')
-          self.app.turn_on(self._seasonal_scene)
-          return
-        else:
-          # No scene was found/created or we don't have any child bulbs so a scene is pointless
-          self._logger.log(f'[{self.name}] failed using a season scene: {self._seasonal_scene}. Attempting to use a different option now.', level='WARNING')
-
-    # if self.use_holidays and self.app.seasons.is_holiday:
-    #   self._logger.log(f'Turning {self.name} on using holiday scene.', level='DEBUG')
-    #   if not self.child_bulbs:
-    #     self._logger.log(f'[{self.name}] does not have any child bulbs so it cannot use a holiday scene.', level='WARNING')
-    #   else:
-    #     # Try to create/get a seasonal scene if we don't have it yet
-    #     self._holiday_scene = self.app.seasons.get_holiday_scene(self.name, self.child_bulbs, self.get_brightness(), overwrite=False)
-    #     if self._holiday_scene:
-    #       self._logger.log(f'Turning {self.name} onto holiday colours using the scene: {self._holiday_scene} ({self.app.seasons.holiday}, {self.app.seasons.season}).', level='DEBUG')
-    #       self.app.turn_on(self._holiday_scene)
-    #       return
-    #     else:
-    #       # No scene was found/created or we don't have any child bulbs so a scene is pointless
-    #       self._logger.log(f'[{self.name}] failed using a holiday scene: {self._holiday_scene}. Attempting to use a different option now.', level='WARNING')
-   
-    if self.scene:
-      scene = self.get_scene()
-      self._logger.log(f'Turning {self.name} on using the scene: {scene}.', level='DEBUG')
+    # Check manual inputs first!!!
+    if scene is not None:
+      self._logger.log(f'[{self.name}] turning on using a manual scene: {scene}', level=self.log_level)
       self.app.turn_on(scene)
+    if self._turn_on_manual(colour, brightness, transition):
+      return
 
-    if self.use_seasons and self.app.seasons.is_season:
-      # Try to create/get a seasonal scene if we don't have it yet
-      self._seasonal_scene = self.app.seasons.try_get_scene(self.app.seasons.season, self.name, self.child_bulbs, self.get_brightness(), overwrite=False)
-      if self._holi_seasonal_sceneday_scene:
-        self._logger.log(f'Turning {self.name} onto seasonal colours using the scene: {self._seasonal_scene} ({self.app.seasons.holiday}, {self.app.seasons.season}).', level='DEBUG')
-        self.app.turn_on(self._seasonal_scene)
-        return
-      else:
-        # No scene was found/created or we don't have any child bulbs so a scene is pointless
-        self._logger.log(f'[{self.name}] failed using a seasonal scene: {self._holiday_scene}. Attempting to use a different option now.', level='WARNING')
+    # Check for sleep mode next
+    if self._turn_on_sleep():
+      return
 
-    if self.use_holidays and self.app.seasons.is_holiday:
-      # Try to create/get a holiday scene if we don't have it yet
-      self._holiday_scene = self.app.seasons.try_get_scene(self.app.seasons.holiday, self.name, self.child_bulbs, self.get_brightness(), overwrite=False)
-      if self._holiday_scene:
-        self._logger.log(f'Turning {self.name} onto holiday colours using the scene: {self._holiday_scene} ({self.app.seasons.holiday}, {self.app.seasons.season}).', level='DEBUG')
-        self.app.turn_on(self._holiday_scene)
-        return
-      else:
-        # No scene was found/created or we don't have any child bulbs so a scene is pointless
-        self._logger.log(f'[{self.name}] failed using a holiday scene: {self._holiday_scene}. Attempting to use a different option now.', level='WARNING')
+    # Loop through all options
+    for name, value in self.attrs[CONF_OPTIONS].items():
+      if value:
+        op = option_map.get(name, None)
+        if op and op():
+          self._logger.log(f'[{self.name}] successfully turned on using: {name}.', level=self.log_level)
+          return
 
+    # Default fallback turn on
+    if not self._turn_on_default():
+      self._logger.log(f'[{self.name}] Failed to turn light on!', level='WARNING')
+
+
+  def _turn_on_sleep(self, kwargs={}):
     if self.sleep_condition:
       kwargs = self.get_colour()
       kwargs['brightness_pct'] = self.get_brightness()
       kwargs['transition'] = self.get_transition()
-      kwargs['entity_id'] = entity_id if entity_id is not None else self.entity_id
-      self.app.call_service('light/turn_on', **kwargs)
-      self._logger.log(f'Turning {self.name} on using sleep conditions: {kwargs}.', level='DEBUG')
-      return
+      if self.sleep_entity:
+        for lt in self.sleep_entity:
+          kwargs['entity_id'] = lt
+          # self.app.call_service('light/turn_on', **kwargs)
+          self._call_service('light/turn_on', kwargs)
+          self._logger.log(f'Turning {self.name} on using sleep conditions: {kwargs}.', level=self.log_level)
+      else:
+        kwargs['entity_id'] = self.entity_id
+        # self.app.call_service('light/turn_on', **kwargs)
+        self._call_service('light/turn_on', kwargs)
+        self._logger.log(f'Turning {self.name} on using sleep conditions: {kwargs}.', level=self.log_level)
+      return True
+    return False
 
+  def _turn_on_manual(self, colour, brightness, transition):
+    """ Turn light on using manual parameters """
+    if not any([colour, brightness, transition]):
+      return False
+
+    kwargs = self.parse_colour(colour)
+    kwargs['entity_id'] = self.entity_id
+    if brightness and isinstance(brightness, int):
+      kwargs['brightness_pct'] = brightness
+    if transition and isinstance(transition, int):
+      kwargs['transition'] = transition
+    # self.app.call_service('light/turn_on', **kwargs)
+    self._call_service('light/turn_on', kwargs)
+    self._logger.log(f'[{self.name}] turn on using manual inputs: colour: {colour}, brightness: {brightness}, transition: {transition}', level=self.log_level)
+    return True
+
+  def _turn_on_scene(self):
+    if self.scene:
+      scene = self.get_scene()
+      self._logger.log(f'Turning {self.name} on using the scene: {scene}.', level=self.log_level)
+      self.app.turn_on(scene)
+      return True
+    return False
+
+  def _turn_on_colour_loop(self, kwargs={}):
+    if self.use_colour_loop:
+      kwargs['entity_id'] = self.entity_id
+      kwargs['brightness_pct'] = self.get_brightness() # - 2 # Changing brightness will stop colorloop so we need it to be different here
+      kwargs['transition'] = self.get_transition()
+      kwargs['effect'] = 'colorloop'
+      # self.app.call_service('light/turn_on', **kwargs)
+      self._call_service('light/turn_on', kwargs)
+      self._logger.log(f'Turning {self.name} on using colour loop: {kwargs}.', level=self.log_level)
+      return True
+    return False
+
+  def _turn_on_random_colour(self, kwargs={}):
+    if self.use_random_colour:
+      # If we dont block the calls while on, the light will keep changing colours
+      if self._is_on:
+        self._logger.log(f'[{self.name}] set to use random_colour but the light is already on and will not be adjust until off again.', level=self.log_level)
+        return True
+      kwargs['entity_id'] = self.entity_id
+      kwargs['brightness_pct'] = self.get_brightness()
+      kwargs['transition'] = self.get_transition()
+      kwargs['effect'] = 'random'
+      # self.app.call_service('light/turn_on', **kwargs)
+      self._call_service('light/turn_on', kwargs)
+      self._logger.log(f'Turning {self.name} on using random colours: {kwargs}.', level=self.log_level)
+      return True
+    return False
+
+  def _turn_on_season(self):
+    if self.use_seasons and self.app.seasons.is_season:
+      # Try to create/get a seasonal scene if we don't have it yet
+      self._seasonal_scene = self.app.seasons.try_get_scene(self.app.seasons.season, self.name, self.child_bulbs, self.get_brightness(), overwrite=False)
+      if self._seasonal_scene:
+        self._logger.log(f'Turning {self.name} onto seasonal colours using the scene: {self._seasonal_scene} ({self.app.seasons.holiday}, {self.app.seasons.season}).', level=self.log_level)
+        self.app.turn_on(self._seasonal_scene)
+        return True
+      else:
+        # No scene was found/created or we don't have any child bulbs so a scene is pointless
+        self._logger.log(f'[{self.name}] failed using a seasonal scene: {self._holiday_scene}. Attempting to use a different option now.', level='WARNING')
+    return False
+
+  def _turn_on_holiday(self):
+    if self.use_holidays and self.app.seasons.is_holiday:
+      # Try to create/get a holiday scene if we don't have it yet
+      self._holiday_scene = self.app.seasons.try_get_scene(self.app.seasons.holiday, self.name, self.child_bulbs, self.get_brightness(), overwrite=False)
+      if self._holiday_scene:
+        self._logger.log(f'Turning {self.name} onto holiday colours using the scene: {self._holiday_scene} ({self.app.seasons.holiday}, {self.app.seasons.season}).', level=self.log_level)
+        self.app.turn_on(self._holiday_scene)
+        return True
+      else:
+        # No scene was found/created or we don't have any child bulbs so a scene is pointless
+        self._logger.log(f'[{self.name}] failed using a holiday scene: {self._holiday_scene}. Attempting to use a different option now.', level='WARNING')
+    return False
+
+  def _turn_on_circadian(self, kwargs={}):
     if self.use_circadian and self.colour:
-      self._logger.log(f'Turned {self.name} on using circadian values.', level='DEBUG')
+      self._logger.log(f'Turned {self.name} on using circadian values.', level=self.log_level)
       # kwargs['kelvin'] = circadian.calc_colortemp # Other option for CL
       kwargs['rgb_color'] = list(circadian.calc_rgb(self.app))
       kwargs['brightness_pct'] = circadian.calc_brightness(self.app)
-      kwargs['entity_id'] = entity_id if entity_id is not None else self.entity_id
-      self.app.call_service('light/turn_on', **kwargs)
-      self._logger.log(f'Turning on {self.name} light with kwargs: {kwargs}.', level='DEBUG')
-      return
+      kwargs['entity_id'] = self.entity_id
+      # self.app.call_service('light/turn_on', **kwargs)
+      self._call_service('light/turn_on', kwargs)
+      self._logger.log(f'Turning on {self.name} light with kwargs: {kwargs}.', level=self.log_level)
+      return True
+    return False
 
-    # If it makes it here, this is the default last ditch effort to turn on
-    self._logger.log(f'Turning {self.name} on using no parameters.', level='DEBUG')
-    self.app.turn_on(self.entity_id)
+  def _turn_on_default(self):
+    # Turn on using basic colour, brightness, & transition
+    kwargs = self.get_colour()
+    kwargs['entity_id'] = self.entity_id
+    if self.is_dimable:
+      kwargs['brightness_pct'] = self.get_brightness()
+      kwargs['transition'] = self.get_transition()
+
+    # This needs to be generical call since it can be a switch or light entity
+    # res = self.app.call_service('homeassistant/turn_on', **kwargs)
+    # self._call_service('homeassistant/turn_on', kwargs)
+    # self.app.turn_on(**kwargs)
+
+    if 'light' in kwargs['entity_id'].split('.')[0]:
+      self._call_service('light/turn_on', kwargs)
+    else:
+      self._call_service('switch/turn_on', kwargs)
+
+    self._logger.log(f'Turning {self.name} ({self.entity_id}) on using no options: {kwargs}', level=self.log_level)
+    return True
 
 
-
-
-
-
+  def _call_service(self, service, kwargs):
+    """ wrapper for HA calls to log any errors """
+    res = self.app.call_service(service, **kwargs)
+    if not res:
+      if service == 'light/turn_on' and not self._is_on or not self._should_be_on:
+        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR')
+  
 
   def turn_light_off(self, transition=None, override=False):
-    if not self._should_adjust(override):
+    if not self._should_adjust(override, turning_on=False):
       return
 
     # Fire event to related lights updating current state
     self._sync_lights(False)
-    self.app.turn_off(self.entity_id)
-    self._logger.log(f'Turning {self.friendly_name.lower()} off.', level='DEBUG')
+    
+    if self.is_dimable:
+      kwargs = {}
+      kwargs['entity_id'] = self.entity_id
+      kwargs['transition'] = transition if transition else self.get_transition()
+      # self.app.call_service('light/turn_off', **kwargs)
+      self._call_service('light/turn_off', kwargs)
+      self._logger.log(f'Turning {self.friendly_name.lower()} off using: {kwargs}', level=self.log_level)
+    else:
+      self.app.turn_off(self.entity_id)
+      self._logger.log(f'Turning {self.friendly_name.lower()} off using simple turn_off().', level=self.log_level)
+
     if self._handle_light_check is None:
       self._handle_light_check = self.app.run_in(self._light_check_cb, 2)
 
 
-  def toggle_light(self, colour=None, brightness=None, transition=None, override=False):
+  def toggle_light(self, colour=None, brightness=None, transition=None, scene=None, override=False):
     """ If the light is physically switched this will try to call turn_light_on and fail w/o using override """
-    if not self._should_adjust(override):
+    if not self._should_adjust(override, turning_on=not self._should_be_on):
       return
 
-    self._logger.log(f'Toggling {self.friendly_name.lower()}.', level='DEBUG')
+    self._logger.log(f'Toggling {self.friendly_name.lower()}.', level=self.log_level)
     if self._should_be_on:
       self.turn_light_off(transition, override)
     else:
-      self.turn_light_on(colour, brightness, transition, override)
+      self.turn_light_on(colour, brightness, transition, scene, override)
 
 
 #########   --- Callbacks ---    #########
@@ -651,17 +842,21 @@ class Light:
   def _entity_state_change_cb(self, entity, attribute, old, new, kwargs):
     """ Call when a entity state changes and a light need to check for an update (ex: dark_mode, sleep_mode) """
     self._update_required = True
+    
 
 
   def _light_callback(self, entity, attribute, old, new, kwargs):
     """ Monitor HA light state (and switch if defined) """
     # Light adjustments other than ON -> OFF or OFF -> ON will provide a dictionary for new
-    # self._logger.log(f'[{self.name}] old: {old}, new: {new}')
+    if old == new:
+      self._logger.log(f'[{self.name}] old an new are the same in light callback... Should I skip these???')
+
+
     new_state = new['state'] if isinstance(new, dict) else new
     old_state = old['state'] if isinstance(old, dict) else old
 
     # Light changed settings while on
-    adjusted_while_on = old_state == new_state
+    adjusted_while_on = old_state == new_state and old != new # Added old != new check
 
     if new_state == 'on':
       self._logger.log(f'[{self.name}] was turned ON in reality!', 'NOTSET')
@@ -669,8 +864,8 @@ class Light:
       if self.take_over_control and self._first_off_cycle_complete:
         # Light turned on manually
         if not self._should_be_on and not self._related_light_exists_and_on:
-          self._logger.log(f'{self.name} light was manually turned on and will stay on until manually turned off.', level='DEBUG')
-          self._allow_manually_adjusted = True
+          self._logger.log(f'{self.name} ({entity}) light was manually turned on and will stay on until manually turned off (is_on: {self._is_on}, should_be_on: {self._should_be_on}): {self.app.get_state(self.entity_id, attribute="all")}', level='INFO')
+          self._prevent_manual_adjustments = True
 
         # Light manually adjusted while on
         if adjusted_while_on:
@@ -679,8 +874,10 @@ class Light:
             self._previous_light_state = new
           else:
             # Light was manually adjust since we cached the "old" state before turning on automatically
-            self._logger.log(f'[{self.name}] light manually adjusted while it is on. Disabling automatic adjustments now.', level='DEBUG')
-            self._allow_manually_adjusted = True
+            # TODO: This is getting trigger 30seconds after dining room light is turning on... (possibly kitchen too)
+            self._logger.log(f'[{self.name}] light manually adjusted while it is on. Disabling automatic adjustments now:  {self.app.get_state(self.entity_id, attribute="all")}', level='INFO')
+            self._logger.log(f'[{self.name}] old: {old}, new: {new}, entity: {entity}, previous_light_state: {self._previous_light_state}')
+            self._prevent_manual_adjustments = True
 
       if entity == self.switch_entity_id:
         self._switch_is_on = True
@@ -702,7 +899,7 @@ class Light:
         self._bulb_is_on = False
 
       self._should_be_on = False
-      self._allow_manually_adjusted = False
+      self._prevent_manual_adjustments = False
       self._first_off_cycle_complete = True
 
 
@@ -713,11 +910,15 @@ class Light:
 
   def _light_check(self, kwargs):
     """ Verify that the light was actually turn on or off """
-    # self._logger.log(f'[{self.name}] checking if light is in correct state...', level='DEBUG')
+    # self._logger.log(f'[{self.name}] checking if light is in correct state...', level=self.log_level)
     self._handle_light_check = None
     self._check_count += 1
     if self._check_count > MAX_LIGHT_CALLBACK_CHECKS:
-      self._logger.log(f'The {self.friendly_name.lower()} tried {self._check_count} time to correct its state (max {MAX_LIGHT_CALLBACK_CHECKS}).')
+      if self._should_be_on and not self._is_on:
+        msg = 'should be on but is off'
+      elif not self._should_be_on and self._is_on:
+        msg = 'should be off but is on'
+      self._logger.log(f'The {self.friendly_name.lower()} tried {self._check_count} time to correct its state (max {MAX_LIGHT_CALLBACK_CHECKS}). The light {msg}.', level='WARNING')
       self._check_count = 0
       self._next_check_time = 1
       return
@@ -732,13 +933,14 @@ class Light:
 
   def _related_lights_callback(self, event_name, data, kwargs):
     """ Sync parent and children lights up """
-    # self._logger.log(f"Setting {data['device']} light to {data['should_be_on']} (should_be_on).", level='DEBUG')
+    # self._logger.log(f"Setting {data['device']} light to {data['should_be_on']} (should_be_on).", level=self.log_level)
     should_be_on = data.get('should_be_on', None)
     if should_be_on is not None:
       self._related_light_is_on = should_be_on
 
   @property
   def log_level(self):
+    """ Log level of all messages - configurable via the YAML """
     return self.attrs[CONF_LOG_LEVEL]
 
   @property
@@ -782,7 +984,7 @@ class Light:
 
   @property
   def take_over_control(self):
-    """ Disable 'adaptive control' when the light is turned on from a different source """
+    """ Disable 'automated control' when the light is turned on from a different source """
     return self.attrs[CONF_TAKE_OVER_CONTROL]
 
   @property 
@@ -808,7 +1010,7 @@ class Light:
   @property
   def sleep_entity(self):
     """ Alternative light to use when asleep condition met """
-    return self.app.map_light_to_entity(self.attrs[CONF_OPTIONS][CONF_SLEEP_LIGHTS])
+    return [self.app.map_light_to_entity(lt) for lt in self.attrs[CONF_PROPERTIES][CONF_SLEEP_LIGHTS]]
 
   @property
   def sleep_colour(self):
@@ -906,10 +1108,19 @@ class Light:
     return self.attrs[CONF_CHILD_LIGHTS]
 
   @property
+  def is_colour(self):
+    """ Is this light capable of using colour """
+    return self.attrs[CONF_IS_COLOUR]
+
+  @property
+  def is_dimable(self):
+    """ Is this light capable of using colour """
+    return self.attrs[CONF_IS_DIMABLE]
+
+  @property
   def _related_light_exists_and_on(self):
     """ A parent or child lights exist and are on """
     return (self.parent_light or self.child_lights) and self._related_light_is_on
-
 
   @property
   def _is_on(self):
@@ -937,11 +1148,16 @@ class Light:
 
   def parse_colour(self, colour):
     """ The colour options, color_name, rgb_color, and color_temp """
-    if isinstance(colour, int): 
+    if not self.is_colour or not colour:
+      return {}
+
+    if isinstance(colour, int):   # Colour temp passed in
       return {'color_temp': colour}
-    if ',' not in colour: 
+    if isinstance(colour, list):  # RGB list passed in
+       return {'rgb_color': colour}
+    if ',' not in colour:         # Name of colour passed in
       return {'color_name': colour}
-    if ',' in colour:
+    if ',' in colour:             # RGB list passed in as a string
       try:
         rgb = [int(x.strip(' ')) for x in colour.strip('[]').strip('()').split(',')]
         if len(rgb) == 3: 
@@ -967,7 +1183,6 @@ class Light:
       return self.parse_day_or_single(self.transition)
 
   def get_colour(self):
-    # color_name, color_temp, rgb_color can be used
     if self.sleep_colour is not None and self.sleep_condition:
       return self.parse_colour(self.sleep_colour)
     else:

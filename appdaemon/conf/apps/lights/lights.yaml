@@ -44,9 +44,9 @@ lights:
         use_holidays: False
 
       properties:
-        # use_dark_mode: 'input_boolean.dark_mode'
+        use_dark_mode: 'input_boolean.dark_mode'
         use_lux: 'sensor.wupws_solarradiation'
-        lux_threshold: 555 # Readings above threshold will prevent light from turning on
+        lux_threshold: 35 # Readings above threshold will prevent light from turning on
 
         sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
         sleep_brightness: 5
@@ -85,7 +85,7 @@ lights:
         sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
         sleep_brightness: 0
     master_bedroom_fan:
-      log_level: INFO
+      # log_level: INFO
       aliases:
         - master bedroom fan
         - master_bedroom_fan
@@ -243,7 +243,7 @@ lights:
         use_dark_mode: 'input_boolean.dark_mode'
     
     dining_room:
-      log_level: INFO
+      # log_level: INFO
       entity_id: light.dining_room
       switch_entity_id: switch.dining_room
       child_bulbs:

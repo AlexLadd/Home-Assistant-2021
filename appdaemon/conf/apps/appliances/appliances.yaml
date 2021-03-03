@@ -20,4 +20,4 @@ washer:
     threshold_on_power: 30
     threshold_off_power: 20
     threshold_extreme_power: 1200
-    threshold_off_time: 5*60
+    threshold_off_time: 7*60

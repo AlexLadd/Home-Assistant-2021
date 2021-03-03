@@ -19,7 +19,7 @@ motion_master:
         - binary_sensor.hue_motion_study_2_motion
       on_lights:
         - light.study_ceiling_light
-      on_duration: 5*60
+      on_duration: 15*60
     master_bedroom:
       aliases:
         - master bedroom

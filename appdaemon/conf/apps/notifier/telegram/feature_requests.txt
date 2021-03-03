@@ -31,3 +31,16 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
 
 2021-02-22, 22:03:59 Stephanie: add the washing machine to the system
   -> DONE - Added Sonoff S31 to washer and created appliance/washer modules
+
+2021-02-26, 07:50:59 Alex: use HAs device_trackers to monitor if equipment goes offline such as raspberry pi, etc...
+
+2021-02-28, 09:56:49 Stephanie: fix washing machine on/off
+  -> DONE - See below
+
+2021-02-28, 11:19:41 Stephanie: increase washing machine off time out to 6 minutes or greater
+  -> DONE - Updated threshold_off_time to 7 minutes
+
+2021-03-01, 21:29:29 Stephanie: when master bathroom fan is on, turn light up to regular level to make a shower scene
+
+2021-03-02, 11:12:30 Alex: dark mode callback in light app to turn appropriate lights off when the sun comes up
+  -> DONE - Added dark_mode & sleep_mode turn_off calls when toggled to approapriate states

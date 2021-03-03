@@ -37,7 +37,10 @@ class UPS(BaseApp):
 
   def _ups_charge_callback(self, entity, attribute, old, new, kwargs):
     """ Monitor UPS charge """
-    self._logger.log(f'UPS charge went from {old} -> {new}')
+    # self._logger.log(f'UPS charge went from {old} -> {new}')
+    if not self.utils.valid_input(old, new):
+      return
+
     try:
       charge = float(new)
     except:
@@ -53,6 +56,9 @@ class UPS(BaseApp):
 
   def _ups_status_callback(self, entity, attribute, old, new, kwargs):
     """ Monitor UPS status changed """
+    if not self.utils.valid_input(old, new):
+      self._logger.log(f'Invalid input: {old} -> {new}')
+      return
 
     if new == STATUS_DATA_OFF or new == STATUS_SENSOR_OFF:
       msg = f'[APC UPS] The power is out at home! (Status: {old} -> {new})'

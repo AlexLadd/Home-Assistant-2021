@@ -509,9 +509,11 @@ class Light:
 
     # Setup listeners for dark_mode & sleep state changes to force update when they change state
     if self.use_dark_mode is not None:
-      self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.use_dark_mode))
+      # self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.use_dark_mode))
+      self._state_handles.append(self.app.listen_state(lambda *_: self.turn_light_off(), self.use_dark_mode, new='off'))
     if self.sleep_condition is not None:
-      self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.sleep_condition_entity))
+      # self._state_handles.append(self.app.listen_state(self._entity_state_change_cb, self.sleep_condition_entity))
+      self._state_handles.append(self.app.listen_state(lambda *_: self.turn_light_off(), self.sleep_condition_entity, new='on'))
 
 
   def _sync_lights(self, state):
@@ -537,9 +539,10 @@ class Light:
     self._related_light_is_on = state
 
 
-  def _should_adjust(self, override):
+  def _should_adjust(self, override, turning_on):
     """ Whether this light should be adjusted or not. Override - will bypass most conditions """
     if isinstance(override, bool) and override:
+      self._logger.log(f'{self.name} was called with override set to: {override}', level=self.log_level)
       return True
 
     # TODO: Check if a parent light is "preventing manual adjustments"???? How to handle Parent/Child relationshit in this situation?
@@ -551,7 +554,8 @@ class Light:
       self._logger.log(f'{self.name} light is currently disabled.', level=self.log_level)
       return False
 
-    if self.get_brightness() == 0:
+    if self.get_brightness() == 0 and turning_on:
+      # Only neede for turning lights on
       self._logger.log(f'{self.name} light has a brightness of 0 currently. Perhaps everyone is asleep and sleep_brightness is 0.', level=self.log_level)
       return False
 
@@ -561,14 +565,17 @@ class Light:
           self._logger.log(f'{self.name} light does not satisfy one or more of the "light_disable_states" ({self.light_disable_states}) (failed: {constraint}, result: {self.app.constraint_compare(constraint)}).', level=self.log_level)
           return False
 
-    # Check if light level below cutoff before checking dark_mode BUT AFTER EVERYTHING ELSE!
-    if self.use_lux and not self.lux_above_cutoff:
-      self._logger.log(f"{self.name} light level sensor readings ({self.app.get_state(self.use_lux)}) < cutoff threshold ({self.lux_threshold}).", level=self.log_level)
-      return True
-
-    if self.use_dark_mode is not None and self.app.get_state(self.use_dark_mode) == 'off':
-      self._logger.log(f'{self.name} light is disabled during dark mode.', level=self.log_level)
-      return False
+    if self.use_dark_mode is not None and self.app.get_state(self.use_dark_mode) == 'off' and turning_on:
+      # Only neede for turning lights on
+      if self.use_lux and not self.lux_above_cutoff:
+      # Check lux level when dark_mode is in use and it is daytime
+        msg = f"{self.name} light level sensor readings ({self.app.get_state(self.use_lux)}) > cutoff threshold ({self.lux_threshold}). \
+          The light will not be disabled during daytime while using dark_mode."
+        self._logger.log(msg, level=self.log_level)
+      else:
+        # No lux defined, use dark_mode only
+        self._logger.log(f'{self.name} light is disabled during dark mode.', level=self.log_level)
+        return False
 
     return True
 
@@ -589,7 +596,7 @@ class Light:
     """
     param override: Will adjust light regardless of other settings (dark_mode, _enabled, physically switch, 0 sleep brightness)
     """
-    if not self._should_adjust(override):
+    if not self._should_adjust(override, turning_on=True):
       return
 
     # ADD BACK IN AFTER TESTING
@@ -790,7 +797,7 @@ class Light:
   
 
   def turn_light_off(self, transition=None, override=False):
-    if not self._should_adjust(override):
+    if not self._should_adjust(override, turning_on=False):
       return
 
     # Fire event to related lights updating current state
@@ -813,7 +820,7 @@ class Light:
 
   def toggle_light(self, colour=None, brightness=None, transition=None, scene=None, override=False):
     """ If the light is physically switched this will try to call turn_light_on and fail w/o using override """
-    if not self._should_adjust(override):
+    if not self._should_adjust(override, turning_on=not self._should_be_on):
       return
 
     self._logger.log(f'Toggling {self.friendly_name.lower()}.', level=self.log_level)
@@ -829,6 +836,7 @@ class Light:
   def _entity_state_change_cb(self, entity, attribute, old, new, kwargs):
     """ Call when a entity state changes and a light need to check for an update (ex: dark_mode, sleep_mode) """
     self._update_required = True
+    
 
 
   def _light_callback(self, entity, attribute, old, new, kwargs):

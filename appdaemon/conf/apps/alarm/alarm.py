@@ -216,7 +216,7 @@ class Alarm(BaseApp):
 
 
   def _armed_home_callback(self, entity, attribute, old, new, kwargs):
-    self._logger.log('Alarm is armed_home.', level='DEBUG')
+    self._logger.log('Alarm is armed_home.', level='INFO')
     self._start_armed_home_listeners()
 
 
@@ -229,7 +229,7 @@ class Alarm(BaseApp):
 
 
   def _armed_away_callback(self, entity, attribute, old, new, kwargs):
-    self._logger.log('Alarm is armed_away.', level='DEBUG')
+    self._logger.log('Alarm is armed_away.', level='INFO')
     self._start_armed_away_listeners()
 
 
@@ -240,7 +240,7 @@ class Alarm(BaseApp):
 
 
   def _armed_night_callback(self, entity, attribute, old, new, kwargs):
-    self._logger.log('Alarm is armed_night.', level='DEBUG')
+    self._logger.log('Alarm is armed_night.', level='INFO')
     self._start_armed_night_listeners()
 
 
@@ -251,7 +251,7 @@ class Alarm(BaseApp):
 
 
   def _disarmed_callback(self, entity, attribute, old, new, kwargs):
-    self._logger.log('Alarm is disarmed.', level='DEBUG')
+    self._logger.log('Alarm is disarmed.', level='INFO')
     self._stop_listeners()
 
 
@@ -361,7 +361,7 @@ class Alarm(BaseApp):
     self._logger.log('Setting up armed away listeners.', level='DEBUG')
     self._start_armed_home_listeners()
 
-    # Might need this if Squirtly trigger alarm when away
+    # Cats can set off motion sensors when away
     if self.get_state(self.const.PET_MODE_BOOLEAN) == 'off':
       self._register_alarm_category(self.motion_sensors, 'armed_away', 'on', 'off')
     else:

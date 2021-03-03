@@ -118,7 +118,7 @@ class SecurityManager(BaseApp):
 
   def disarm_security_system(self):
     """ All modules interacting with the alarm system should use the security module for consistency """
-    self.alarm.disarm_alarm()
+    self.alarm.disarm()
 
 
   def lockdown_house(self):
