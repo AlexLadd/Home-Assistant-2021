@@ -8,4 +8,3 @@ espon_printer_sensors_master:
     - sensor.epson_wf_3720_series_cyan_ink
     - sensor.epson_wf_3720_series_magenta_ink
     - sensor.epson_wf_3720_series_yellow_ink
-    - sensor.epson_wf_3720_series

@@ -16,7 +16,7 @@ sleep_controller:
     - presence
     - lights
     - security
-    # - messages
+    - messages
     - climate
     - spotify_engine
 

@@ -7,6 +7,10 @@ motion_master:
   dependencies:
     - custom_logger
     - lights
+    - spotify_engine
+    - sleep
+    - messages
+    - notifier
   logging_cutoff: INFO
   sensors:
 

@@ -16,6 +16,7 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
   -> DONE - Feb 12 - UNTESTED IN PRODUCTION
 
 2021-02-16, 04:23:06 Alex: sent telegram message when log level is warning or higher
+  -> DONE - Added event to custom_logger that fire and received by the telegram app
 
 2021-02-16, 05:07:51 Alex: outside light turns off after 5 or so minutes while we are shoveling outside
   -> DONE - Upped to 15 minutes
@@ -44,3 +45,18 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
 
 2021-03-02, 11:12:30 Alex: dark mode callback in light app to turn appropriate lights off when the sun comes up
   -> DONE - Added dark_mode & sleep_mode turn_off calls when toggled to approapriate states
+
+2021-03-02, 21:44:33 Stephanie: finish good night message
+  -> DONE - Added message in master when first person asleep, added good morning individual messages & first person asleep message when certain states satisfied
+
+2021-03-02, 21:47:30 Stephanie: when the kitchen motion sensor is tripped in the morning, it plays the good morning message
+  -> DONE - Added to motion app in kitchen
+
+2021-03-03, 13:25:33 Alex: add scene and light control functionality to hue dimmer in master bathroom
+
+
+2021-03-03, 21:47:26 Alex: build a reminder system similar to the reporting system
+
+2021-03-06, 21:43:03 Alex: add garbage email to Google calender somehow
+
+2021-03-06, 21:46:25 Alex: build smart water bowl and food bowl monitoring. Maybe add a sensor to a door/window sensor and trigger when dropping to bottom of bowl

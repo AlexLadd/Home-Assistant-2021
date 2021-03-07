@@ -14,7 +14,7 @@ class TTS(BaseApp):
 
     self.sleep = self.get_app('sleep')
     self.mp = self.get_app('speakers')
-    # self.messages = self.get_app('messages')
+    self.messages = self.get_app('messages')
     self.sc = self.get_app('spotify_client')
 
     self.debug_level = 'DEBUG'
@@ -23,9 +23,14 @@ class TTS(BaseApp):
     self.previous_spotify_volume = 0        # Previous Spotify speaker volume level
     self.tts_messages = []                  # List of queued TTS messages as dictionaries
     self.tts_lock = threading.Lock()        # TTS lock
-
+    
+    # Schedule TTS Cache cleanup every sunday at 4AM
     dt = datetime.datetime.combine(self.date(), datetime.time(4, 00))
-    dt += datetime.timedelta(days = 6 - dt.weekday()) # Get the next sunday
+    if dt - self.datetime() > datetime.timedelta(seconds=1):
+      dt += datetime.timedelta(days = 6 - dt.weekday()) # Get the next sunday
+    else:
+      # It is currently Sunday and past 4AM - Schedule for next Sunday
+      dt += datetime.timedelta(days = 7 + 6 - dt.weekday()) # Get the next sunday
     self.run_every(lambda *_: self._clear_tts_cache(), dt, 24*60*60*7) # Cleanup file every sunday at 4AM
 
 
@@ -73,9 +78,9 @@ class TTS(BaseApp):
       else:
         self.tts_playing = True
 
-    speakers = self.mp.get_sanitized_speakers(speaker=media_player, speaker_override=speaker_override, use_groups=True)
-    # if not no_greeting:
-    #   message = self.messages.greeting() + message
+    speakers = self.mp.get_sanitized_speakers(speaker=media_player, speaker_override=speaker_override, use_groups=False)
+    if not no_greeting:
+      message = self.messages.greeting() + message
     _message = '<speak> ' + message + ' </speak>'
     
     # If spotify is currently playing take a snapshot

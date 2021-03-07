@@ -160,6 +160,7 @@ lights:
       entity_id: light.master_bathroom_ceiling
       light_disable_states: 
         - input_boolean.master_tub_in_use, ==, on
+        - input_boolean.master_shower_in_use, ==, on
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
         brightness: 100
@@ -173,6 +174,7 @@ lights:
       # switch_entity_id: switch.master_bathroom_tub
       light_disable_states: 
         - input_boolean.master_tub_in_use, ==, on
+        - input_boolean.master_shower_in_use, ==, on
       child_bulbs:
         - light.hue_ambiance_spot_3
         - light.hue_ambiance_spot_4
@@ -185,12 +187,20 @@ lights:
     upstairs_stairway:
       entity_id: switch.upstairs_stair
     
+    small_bedroom:
+      # log_level: INFO
+      aliases:
+        - small bedroom
+      entity_id: switch.small_bedroom
+
     main_hallway:
       entity_id: switch.main_hallway
 
     main_bathroom:
       # log_level: INFO
       entity_id: switch.main_bathroom
+      light_disable_states:
+        - input_boolean.main_shower_in_use, ==, on
 
     front_door:
       entity_id: switch.front_door
@@ -238,7 +248,9 @@ lights:
         - living room light strip
         - living room tv lights
         - living_room_tv_lights
-      entity_id: light.hue_lightstrip_plus_1
+        - living room tv
+        - living_room_tv
+      entity_id: light.living_room_tv # light.hue_lightstrip_plus_1
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
     

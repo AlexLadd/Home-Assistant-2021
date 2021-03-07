@@ -15,9 +15,6 @@ import operator
 import voluptuous as vol
 import utils_validation
 
-# from const import DARK_MODE_BOOLEAN
-
-# THIS IS A SIMPLE EXAMPLE OF HOW TO VALIDATE THE BASE APP CONFIG
 """
 Yaml Parameters (possibilities):
   - constraint_app_enabled: A list of contraints to disable to the app. ex: input_boolean.ad_testing_1, ==, on
@@ -35,7 +32,7 @@ TODO:
   - Add in functionality to check app dependencies and set them to given app so the app doesnt need to do it individually
 """
 
-# This app toggle for debugging since it cannot use the build in logger to manage this
+# Toggle for debugging since this app cannot use the built in logger to manage this
 DEBUGGING = False
 
 CONF_DEPENDENCIES = 'dependencies'
@@ -43,6 +40,7 @@ CONF_DISABLED_STATES = "constraint_app_enabled"
 CONF_LOGGING_CUTTOFF = 'logging_cutoff'
 CONF_LOGGING_CUTTOFF_DEFAULT = 'DEBUG'
 
+# Base schema that can be extended by any app
 APP_SCHEMA = vol.Schema(
   {
     vol.Optional(CONF_DEPENDENCIES, default=[]): utils_validation.ensure_list,
@@ -103,7 +101,7 @@ class BaseApp(hass.Hass):
 
   @property
   def dt_str(self):
-    """ String datetime that looks nice """
+    """ Formated datetime Str """
     return self.datetime().strftime("%Y-%m-%d, %H:%M:%S")
 
   def set_logger_threshold(self, lvl):
@@ -121,7 +119,7 @@ class BaseApp(hass.Hass):
 
   def constraint_app_enabled(self, value): 
     """ 
-    Top level call for app config comparisons 
+    Top level call for app config comparisons - Used for clarity
     Add "constraint_app_enabled" to app yaml along with constraints
     """
     return self.constraint_compare(value)

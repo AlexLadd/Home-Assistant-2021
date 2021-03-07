@@ -30,6 +30,7 @@ class MasterTub(BaseApp):
 
   def setup(self): 
     # self.listen_state(self.test,'input_boolean.ad_testing_1')
+    
     self.lights = self.get_app('lights')
 
     self._handle_tub_timer = None
@@ -41,9 +42,9 @@ class MasterTub(BaseApp):
 
     # Sync up state on restart
     if self.is_on:
-      self._turn_on_boolean()
+      self._turn_on()
     if not self.is_on:
-      self._turn_off_boolean()
+      self._turn_off()
 
 
   def _process_cfg(self, config):
@@ -80,10 +81,15 @@ class MasterTub(BaseApp):
   def _turn_on_boolean(self):
     if not self.is_on:
       self.turn_on(self.monitor_entity)
+    self._logger.log(f'"{self.friendly_name(self.monitor_entity)}" turned on.')
+    self._turn_on()
 
-    self.log(f'"{self.friendly_name(self.monitor_entity)}" turned on.')
+
+  def _turn_on(self):
+    """ Logic for turning master tub on """
     for lt in self.disabled_lights:
-        self.lights.disable_light(lt)
+      self.lights.disable_light(lt)
+    self.lights.turn_light_on(self.tub_scene, override=True)
 
     # Start timeout timer (AD/HA reset will cause this to restart timer)
     self._handle_tub_timer = self.run_in(lambda *_: self._turn_off_boolean(), self.timeout)
@@ -92,10 +98,14 @@ class MasterTub(BaseApp):
   def _turn_off_boolean(self):
     if self.is_on:
       self.turn_off(self.shower_boolean)
+    self._logger.log(f'"{self.friendly_name(self.monitor_entity)}" turned off.')
+    self._turn_off()
 
-    self.log(f'"{self.friendly_name(self.monitor_entity)}" turned off.')
+
+  def _turn_off(self):
+    """ Logic for turning master tub off """
     for lt in self.disabled_lights:
-        self.lights.enable_light(lt)
+      self.lights.enable_light(lt)
 
     # Cancel timeout timer
     if self._handle_tub_timer is not None:
@@ -103,6 +113,7 @@ class MasterTub(BaseApp):
 
 
   def _state_change(self, entity, attribute, old, new, kwargs):
+    # self._logger.log(f'State: {self.state}, is_on: {self.is_on}')
     if self.utils.valid_input(old, new):
       if new == 'on':
         self._turn_on_boolean() 

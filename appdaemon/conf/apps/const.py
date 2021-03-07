@@ -76,6 +76,9 @@ HEAT_MONTH_START = 'November'     # inclusive
 HEAT_MONTH_END = 'March'          # inclusive 
 
 
+# Tracking stuff
+ALEX_MORNING_GREETING_BOOLEAN = 'input_boolean.alex_morning_greeting_complete_today'
+STEPH_MORNING_GREETING_BOOLEAN = 'input_boolean.steph_morning_greeting_complete_today'
 
 
 # Config Validation Constants

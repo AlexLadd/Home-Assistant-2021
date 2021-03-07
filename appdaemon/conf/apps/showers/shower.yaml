@@ -5,6 +5,7 @@ master_shower:
   switch: switch.master_bathroom_fan
   boolean: input_boolean.master_shower_in_use
   motion_sensor: binary_sensor.master_bathroom_motion_sensor
+  # shower_scene: scene.dummy # light_on still needs to be defined so it can be used to call w/ the scene and to potentially turn_off after
   light_on:
     - master_bathroom_ceiling
     - master_bathroom_tub
@@ -15,6 +16,9 @@ master_shower:
 master_tub:
   module: master_tub
   class: MasterTub
+  dependencies:  
+    - custom_logger
+    - lights
   options:
     monitor_entity: input_boolean.master_tub_in_use
     tub_scene: scene.dummy

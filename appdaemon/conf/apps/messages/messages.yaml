@@ -1,0 +1,7 @@
+
+messages:
+  module: messages
+  class: Messages
+  dependencies: 
+    - custom_logger
+    - climate

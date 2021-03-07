@@ -1,0 +1,10 @@
+
+# Smoke Detectors:
+
+smoke_detector_master:
+  name: "Smoke Detectors"
+  entities:
+    - binary_sensor.main_hallway_smoke_detector
+    # - binary_sensor.kitchen_smoke_detector
+    - binary_sensor.laundry_room_smoke_detector
+    - binary_sensor.office_smoke_detector

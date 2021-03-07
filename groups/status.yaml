@@ -10,11 +10,14 @@ status_sensors_master:
     - sensor.ups_status_data
     - binary_sensor.sonoff_rf_bridge_status
     - binary_sensor.sonoff_rf_bridge_2_status
+    - binary_sensor.sonoff_rf_bridge_3_status
+    - binary_sensor.sonoff_rf_bridge_4_status
     - binary_sensor.sonoff_s31_washing_machine
     - binary_sensor.elexa_consumer_products_inc_dome_door_window_sensor_sensor
     - binary_sensor.elexa_consumer_products_inc_dome_door_window_sensor_sensor_4
     - sensor.living_room_broadlink
     - sensor.master_broadlink
+    - sensor.epson_wf_3720_series
 
 
 # Wifi Sensors:
@@ -24,5 +27,7 @@ wifi_sensors_master:
   entities:
     - sensor.sonoff_rf_bridge_wifi_signal
     - sensor.sonoff_rf_bridge_2_wifi_signal
+    - sensor.sonoff_rf_bridge_3_wifi_signal
+    - sensor.sonoff_rf_bridge_4_wifi_signal
     - sensor.sonoff_s31_washing_machine_wifi_signal
     - sensor.nextion_fireplace_wallplate_wifi_signal

@@ -32,6 +32,7 @@ WINDOWS_MASTER = 'group.window_sensors_master'
 
 FRONT_DOOR_SENSOR = 'binary_sensor.front_door_window_sensor'
 KITCHEN_DOOR_SENSOR = 'binary_sensor.kitchen_door_window_sensor'
+STUDY_DOOR_SENSOR = 'binary_sensor.study_outside_door_sensor'
 
 FRONT_DOOR_RECENTLY_OPEN_TIME = 10*60
 KITCHEN_DOOR_RECENTLY_OPEN_TIME = 10*60
@@ -78,6 +79,8 @@ class DoorsWindows(BaseApp):
       return KITCHEN_DOOR_SENSOR
     elif door.lower().replace('_', ' ') in ['front', 'main']:
       return FRONT_DOOR_SENSOR
+    elif door.lower().replace('_', ' ') in ['study', 'office']:
+      return STUDY_DOOR_SENSOR
     else:
       return door
 

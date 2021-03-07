@@ -16,10 +16,15 @@ class Shower(BaseApp):
     self.motion_sensor = self.args['motion_sensor'] 
     self.light_on = self.args['light_on']
     self.light_off = self.args.get('light_off', self.light_on)
+    self.shower_scene = self.args.get('shower_scene', None)
 
     # Listen for exhaust fan state change
     self.listen_state(self._state_change, self.fan_switch)
+    # Wait for everything to setup??
+    self.run_in(self._setup, 1)
 
+
+  def _setup(self, kwargs):
     # Sync up state on restart
     if self.get_state(self.fan_switch) == 'on':
       self._turn_on_boolean()
@@ -42,14 +47,17 @@ class Shower(BaseApp):
 
   def _turn_on_boolean(self):
     if not self.is_on:
-      self.log(f'{self} turned on.')
+      self._logger.log(f'{self} turned on.')
       self.turn_on(self.shower_boolean)
-      self.lights.turn_light_on(self.light_on, brightness=100, override=True)
+      if self.shower_scene:
+        self.lights.turn_light_on(self.light_on, scene=self.shower_scene, override=True)
+      else:
+        self.lights.turn_light_on(self.light_on, brightness=100, override=True)
 
 
   def _turn_off_boolean(self):
     if self.is_on:
-      self.log(f'{self} turned off.')
+      self._logger.log(f'{self} turned off.')
       self.turn_off(self.shower_boolean)
       if self.utils.last_changed(self, self.motion_sensor) > LIGHT_OFF_NO_MOTION_TIME:
         # No motion for a while, turn light off

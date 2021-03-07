@@ -15,9 +15,9 @@ LIVING_ROOM_TV = 'media_player.living_room_tv'
 LIVING_ROOM_TV_BOOLEAN = 'input_boolean.living_room_tv_in_use'
 LIVING_ROOM_TV_INPUT_TEXT = 'input_text.living_room_tv_last_used'
 
-LIVING_ROOM_LAMPS = 'light.living_room_lamps'
-LIVING_ROOM_FAN = 'light.living_room_fan_light'
-LIVING_ROOM_LIGHTSTRIP = 'light.hue_lightstrip_plus_1' # This is the native hue light ('light.living_room_tv' What is this?)
+LIVING_ROOM_LAMPS = 'living_room_lamps'
+LIVING_ROOM_FAN = 'living_room_fan_light'
+LIVING_ROOM_LIGHTSTRIP = 'living_room_lightstrip' # This is the native hue light 'light.living_room_tv'
 
 
 class LivingRoomTV(BaseApp):

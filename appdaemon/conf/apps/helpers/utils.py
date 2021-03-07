@@ -6,9 +6,11 @@ Appdaemon helper functions
 
 import datetime
 import os
+import re
 
 from const import (DARK_MODE_BOOLEAN,
-                  WINTER_MONTH_START, WINTER_MONTH_END)
+                  WINTER_MONTH_START, WINTER_MONTH_END, AC_MONTH_START, AC_MONTH_END,
+                  HEAT_MONTH_START, HEAT_MONTH_END)
 
 
 #       **********  General Functions **********
@@ -43,7 +45,7 @@ def last_changed(hass, entity):
 
 def valid_input(old, new=None):
   """ Return if the callback input is valid for use """
-  INVALID = ['unavailable', 'unknown', 'Unavailable', 'Unknown']
+  INVALID = ['unavailable', 'unknown', 'Unavailable', 'Unknown', 'None']
   if new is None:
     return old not in INVALID
   if new != old and old not in INVALID and new not in INVALID:
@@ -104,6 +106,16 @@ def month_is_between(start, end, inclusive=True):
 def is_winter_months():
   """ Return true if the current month is a typical winter month """
   return month_is_between(WINTER_MONTH_START, WINTER_MONTH_END, inclusive=True)
+
+
+def is_ac_months():
+  """ Months the air conditions typically runs """
+  return month_is_between(AC_MONTH_START, AC_MONTH_END, inclusive=True)
+
+
+def is_heat_months():
+  """ Months the heating typically runs """
+  return month_is_between(HEAT_MONTH_START, HEAT_MONTH_END, inclusive=True)
 
 
 def is_weekday():

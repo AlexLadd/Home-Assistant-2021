@@ -502,7 +502,7 @@ class SpotifyClient(BaseApp):
 
       if cast.uuid not in self._chromecasts:
         self._logger.log('Found a new Chromecast device: {}'.format(cast.name), level=self._log_level)
-        c = CastDevice(cast, self, self._log_level)
+        c = CastDevice(cast, self._logger, self._log_level)
         self._chromecasts[c.uuid] = c
       else:
         # Try to update an existing CastDevice that is disconnected or failed
@@ -1497,7 +1497,7 @@ class SpotifyClient(BaseApp):
     """
     d = data
 
-    track = d.get('track', None)
+    track = d.get('track', d.get('song', None))
     playlist = d.get('playlist', None)
     album = d.get('album', None)
     artist = d.get('artist', None)
@@ -1871,7 +1871,7 @@ class CastDevice:
     Attempt to initialize a new cast connection after disconnected/failed
     """
     if not self.complete_info:
-      self.logger._logger.log('Incomplete cast information ({}), skipping reconnection attempt.'.format(self.name), self.__log_level)
+      self.logger.log('Incomplete cast information ({}), skipping reconnection attempt.'.format(self.name), self.__log_level)
       return
 
     info = (self.host, self.port, self.uuid, self.model_name, self.name)
@@ -1885,7 +1885,7 @@ class CastDevice:
     """
     if self._chromecast is not None:
       # The chromecast is already setup
-      self.logger._logger.log('Chromecast is already setup: {}'.format(self.name), self.__log_level)
+      self.logger.log('Chromecast is already setup: {}'.format(self.name), self.__log_level)
       return
 
     self._cast_info['host'] = chromecast.host if hasattr(chromecast, 'host') else None
@@ -1906,17 +1906,17 @@ class CastDevice:
   def new_cast_status(self, cast_status):
     """ Handle updates of the cast status """
     self.cast_status = cast_status
-    # self.logger._logger.log('[{}] Received new cast device status on.'.format(self.name))
+    # self.logger.log('[{}] Received new cast device status on.'.format(self.name))
 
   def new_media_status(self, media_status):
     """ Handle updates of the media status """
     self.media_status = media_status
-    # self.logger._logger.log('[{}] Received new cast device media status on.'.format(self.name))
+    # self.logger.log('[{}] Received new cast device media status on.'.format(self.name))
 
   def new_connection_status(self, connection_status):
     """ Handle updates of connection status """
     self.connection_status = connection_status.status
-    # self.logger._logger.log("[{}] Received new cast device connection status: {}".format(self.name, connection_status.status), self.__log_level)
+    # self.logger.log("[{}] Received new cast device connection status: {}".format(self.name, connection_status.status), self.__log_level)
 
     if connection_status.status == CONNECTION_STATUS_DISCONNECTED:
       self._available = False
@@ -1927,7 +1927,7 @@ class CastDevice:
     if new_available != self._available:
       # Connection status callbacks happen often when disconnected.
       # Only update state when availability changed
-      # self.logger._logger.log("[{}] Cast device availability changed: {}".format(self.name, connection_status.status), self.__log_level)
+      # self.logger.log("[{}] Cast device availability changed: {}".format(self.name, connection_status.status), self.__log_level)
       self._available = new_available
 
   def stop(self):
@@ -1936,9 +1936,9 @@ class CastDevice:
 
     try :
       self._chromecast.disconnect(timeout=10)
-      # self.logger._logger.log('[{}] Disconnected from chromecast socket.'.format(self.name), level=self.__log_level)
+      # self.logger.log('[{}] Disconnected from chromecast socket.'.format(self.name), level=self.__log_level)
     except Exception as e:
-      # self.logger._logger.log('[{}] Failed to disconnect, error: {}'.format(self.name, e), level='WARNING')
+      # self.logger.log('[{}] Failed to disconnect, error: {}'.format(self.name, e), level='WARNING')
       pass
 
     self._available = False
@@ -1946,7 +1946,7 @@ class CastDevice:
 
   def _invalidate(self):
     """ Invalidate some attributes """
-    # self.logger._logger.log('[{}] Cast is invalidated, reset connection to use it again.'.format(self.name), self.__log_level)
+    # self.logger.log('[{}] Cast is invalidated, reset connection to use it again.'.format(self.name), self.__log_level)
     self._chromecast = None
     self.cast_status = None
     self.media_status = None

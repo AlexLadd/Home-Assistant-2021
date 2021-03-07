@@ -222,10 +222,8 @@ class Speakers(BaseApp):
     mp = []
 
     if self.get_state(self.const.EMERGENCY_MODE_BOOLEAN) == 'on':
-      if use_groups:
-        mp = [self.map_speaker_to_entity('all')]
-      else:
-        mp = self.all_speaker_no_groups
+      mp = [self.map_speaker_to_entity('all')]
+      self._logger.log(f'Emergency mode is on, media players used: {mp}')
 
     elif speaker and ((not self.is_playing(speaker) \
       and ((self.map_speaker_to_entity('master') in speaker and self.sleep.everyone_awake) \

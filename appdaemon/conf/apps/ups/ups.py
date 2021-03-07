@@ -27,7 +27,8 @@ NOTIFY_TITLE = 'APC UPS'
 class UPS(BaseApp):
 
   def setup(self):
-    self.listen_state(self.test,'input_boolean.ad_testing_1')
+    # self.listen_state(self.test,'input_boolean.ad_testing_1')
+    
     self.notifier = self.get_app('notifier')
 
     self.listen_state(self._ups_charge_callback, UPS_BATTERY_CHARGE)
@@ -56,7 +57,7 @@ class UPS(BaseApp):
 
   def _ups_status_callback(self, entity, attribute, old, new, kwargs):
     """ Monitor UPS status changed """
-    if not self.utils.valid_input(old, new):
+    if not self.utils.valid_input(old, new) or old is None :
       self._logger.log(f'Invalid input: {old} -> {new}')
       return
 

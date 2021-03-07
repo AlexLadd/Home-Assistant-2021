@@ -25,5 +25,5 @@ tts:
     - custom_logger
     - sleep
     - speakers
-    # - messages
-    # - spotify_client
+    - messages
+    - spotify_client

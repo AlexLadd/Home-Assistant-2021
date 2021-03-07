@@ -485,7 +485,7 @@ class Light:
       self._bulb_is_on = False
       self._should_be_on = False
     else:
-      self._logger.log(f'[{self.friendly_name}] {self.entity_id} is in an unknown state during startup, current state: "{state}".', level='WARNING')
+      self._logger.log(f'[{self.friendly_name}] {self.entity_id} is in an unknown state during startup, current state: "{state}".', level='WARNING', notify=False)
 
     # Initially sync app switch state if there is a switch/hue bulb pair
     if self.switch_entity_id:
@@ -542,7 +542,7 @@ class Light:
   def _should_adjust(self, override, turning_on):
     """ Whether this light should be adjusted or not. Override - will bypass most conditions """
     if isinstance(override, bool) and override:
-      self._logger.log(f'{self.name} was called with override set to: {override}', level=self.log_level)
+      self._logger.log(f'{self.name} was called with override set to: {override} (turning_on: {turning_on}).', level=self.log_level)
       return True
 
     # TODO: Check if a parent light is "preventing manual adjustments"???? How to handle Parent/Child relationshit in this situation?
@@ -569,8 +569,7 @@ class Light:
       # Only neede for turning lights on
       if self.use_lux and not self.lux_above_cutoff:
       # Check lux level when dark_mode is in use and it is daytime
-        msg = f"{self.name} light level sensor readings ({self.app.get_state(self.use_lux)}) > cutoff threshold ({self.lux_threshold}). \
-          The light will not be disabled during daytime while using dark_mode."
+        msg = f"{self.name} light level sensor readings ({self.app.get_state(self.use_lux)}) < cutoff threshold ({self.lux_threshold}). The light will not be disabled during daytime while using dark_mode."
         self._logger.log(msg, level=self.log_level)
       else:
         # No lux defined, use dark_mode only
@@ -607,7 +606,7 @@ class Light:
     self._sync_lights(True)
 
     # The switch must be on for the bulb(s) to work (if it exists)
-    if self.switch_entity_id:
+    if self.switch_entity_id and self.app.get_state(self.switch_entity_id) == 'off':
       self._logger.log(f'[{self.name}] switch turning on ({self.switch_entity_id}).', level=self.log_level)
       self.app.turn_on(self.switch_entity_id)
 
@@ -792,8 +791,10 @@ class Light:
     """ wrapper for HA calls to log any errors """
     res = self.app.call_service(service, **kwargs)
     if not res:
-      if service == 'light/turn_on' and not self._is_on or not self._should_be_on:
-        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR')
+      if service == 'light/turn_on' and (not self._is_on or not self._should_be_on):
+        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR', notify=False)
+      elif service == 'light/turn_off' and (self._is_on or self._should_be_on):
+        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR', notify=False)
   
 
   def turn_light_off(self, transition=None, override=False):
@@ -848,9 +849,12 @@ class Light:
 
     new_state = new['state'] if isinstance(new, dict) else new
     old_state = old['state'] if isinstance(old, dict) else old
+    # TODO: These were changed from simply old & new
+    new_attrs = new['attributes'] if isinstance(new, dict) else new
+    old_attrs = old['attributes'] if isinstance(old, dict) else old
 
     # Light changed settings while on
-    adjusted_while_on = old_state == new_state and old != new # Added old != new check
+    adjusted_while_on = old_state == new_state and old_attrs != new_attrs # Added old != new check
 
     if new_state == 'on':
       self._logger.log(f'[{self.name}] was turned ON in reality!', 'NOTSET')
@@ -868,9 +872,10 @@ class Light:
             self._previous_light_state = new
           else:
             # Light was manually adjust since we cached the "old" state before turning on automatically
-            # TODO: This is getting trigger 30seconds after dining room light is turning on... (possibly kitchen too)
             self._logger.log(f'[{self.name}] light manually adjusted while it is on. Disabling automatic adjustments now:  {self.app.get_state(self.entity_id, attribute="all")}', level='INFO')
-            self._logger.log(f'[{self.name}] old: {old}, new: {new}, entity: {entity}, previous_light_state: {self._previous_light_state}')
+            self._logger.log(f'[{self.name}] NEW: {new}', level='DEBUG')
+            self._logger.log(f'[{self.name}] OLD: {old.get("attributes", {})}', level='DEBUG')
+            self._logger.log(f'[{self.name}] PREVIOUS_LIGHT_STATE: {self._previous_light_state["attributes"]}', level='DEBUG')
             self._prevent_manual_adjustments = True
 
       if entity == self.switch_entity_id:

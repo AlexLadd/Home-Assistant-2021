@@ -13,6 +13,8 @@ import datetime
 
 EMERGENCY_TTS_FREQUENCY = 13
 EMERGENCY_LIGHTS_FREQUENCY = 4
+
+SECURITY_MONITORING_BOOLEAN = 'input_boolean.security_monitoring_is_on'
 HUE_LIGHTS = 'light.all_hue_lights'
 LIGHT_SWITCHES = 'group.light_switches_master'
 
@@ -177,6 +179,7 @@ class SecurityManager(BaseApp):
 
 
   def stop_security_monitoring(self):
+    self.turn_off(SECURITY_MONITORING_BOOLEAN)
     if self.handle_vacancy_monitoring:
       self._logger.log('Stopping vacancy monitoring.', level='INFO')
       self.cancel_timer(self.handle_vacancy_monitoring)
@@ -187,6 +190,7 @@ class SecurityManager(BaseApp):
     """ 
     param start_offset: Number of minutes before starting the check
     """
+    self.turn_on(SECURITY_MONITORING_BOOLEAN)
     self._logger.log('Starting vacancy monitoring.', level='INFO')
     if self.handle_vacancy_monitoring:
       self.cancel_timer(self.handle_vacancy_monitoring)

@@ -26,6 +26,7 @@ class PC(BaseApp):
 
   def setup(self):
     # self.listen_state(self.test,'input_boolean.ad_testing_1')
+
     self.notifier = self.get_app('notifier')
     self.presence = self.get_app('presence')
     # self.alarm = self.get_app('alarm')
@@ -45,6 +46,7 @@ class PC(BaseApp):
     self.handle_one_home_steph = None
     self.handle_one_left_alex = None
     self.handle_one_left_steph = None
+    self._handle_spotify_play = None
 
     self.listen_state(self._alex_state_change, self.const.ALEX_PERSON)
     self.listen_state(self._steph_state_change, self.const.STEPH_PERSON)
@@ -89,8 +91,11 @@ class PC(BaseApp):
   def _play_greeting_song(self, song):
     """ Plays a Spotify song if the front door is opened before the timeout is reached """
     if self.sleep.everyone_awake or self.now_is_between(self.const.DEFAULT_WAKEUP, self.const.DEFAULT_ASLEEP):
-      # self.se.play_song_on_event(song, 'family_room', FRONT_DOOR_SENSOR, old_state='off', new_state='on', timeout=GREETING_SONG_TIMEOUT)
-      self.listen_state(lambda *_: self.se.play_song(self.se._map_song(song, 2), 'kitchen', ), self.dw.map_door_to_entity('kitchen'), old='off', new='on', timeout=GREETING_SONG_TIMEOUT, oneshot=True)
+      if self._handle_spotify_play is not None:
+        self.cancel_listen_state(self._handle_spotify_play)
+        self._handle_spotify_play = None
+      cb_func = lambda *_: self.se.play_song(self.se._map_song(song, 2), 'kitchen', )
+      self._handle_spotify_play = self.listen_state(cb_func, self.dw.map_door_to_entity('kitchen'), old='off', new='on', timeout=GREETING_SONG_TIMEOUT, oneshot=True)
     else:
       self._logger.log('Not playing a greeting song because it is too late or someone is sleeping.')
 
@@ -295,5 +300,8 @@ class PC(BaseApp):
     pass
 
   def test(self, entity, attribute, old, new, kwargs):
-    pass
+    self._logger.log(f'Testing PC Module: ')
+    
+    cb_func = lambda *_: self.se.play_song({'song':'Frozen', 'artist':'Various Artists'}, 'all_speakers', volume=0.50, speaker_override=True)
+    self._handle_spotify_play = self.listen_state(cb_func, self.dw.map_door_to_entity('study'), old='off', new='on', timeout=GREETING_SONG_TIMEOUT, oneshot=True)
 

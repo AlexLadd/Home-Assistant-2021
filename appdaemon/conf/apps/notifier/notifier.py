@@ -10,9 +10,12 @@ from base_app import BaseApp
 class Notifier(BaseApp):
 
   def setup(self):
-    # self.listen_state(self.test,'input_boolean.ad_testing_3')
+    self.listen_state(self.test,'input_boolean.ad_testing_3')
+
     self.telegram = self.get_app('telegram')
     self.tts = self.get_app('tts')
+
+    self.listen_event(self._logger_message_event_cb, 'notifier.log_message')
 
 
   def html5_notify(self, target, message, title='Home Assistant', tag='', actions=[], renotify=False, image_path=None):
@@ -44,6 +47,11 @@ class Notifier(BaseApp):
 
   def tts_notify(self, message, media_player=None, volume=None, speaker_override=False, no_greeting=False, options={}):
     self.tts.tts_notify(message, media_player, volume, speaker_override, no_greeting, options)
+
+
+  def _logger_message_event_cb(self, event_name, data, kwargs):
+    # self._logger.log(f'_logger_message_event_cb called: {locals()}')
+    self.telegram_notify(data.get('message', 'ERROR: No Message Provided'), 'logging', 'Log Error')
 
 
   def telegram_notify(self, msg, target=[], title='', disable_notification=False, tag=''):

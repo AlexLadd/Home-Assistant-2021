@@ -17,20 +17,17 @@ DEFAULT_ALEX_WAKEUP_TIME = '08:00:00'
 DEFAULT_STEPH_WAKEUP_TIME = '07:57:00'
 SECURITY_MONITORING_FREQUENCY = 10*60
 
-ALEX_MORNING_GREETING_BOOLEAN = 'input_boolean.alex_morning_greeting_complete_today'
-STEPH_MORNING_GREETING_BOOLEAN = 'input_boolean.steph_morning_greeting_complete_today'
-
 NOTIFY_TARGET = 'everyone'
 NOTIFY_TITLE = 'Good Morning'
 
 ASLEEP_TURN_OFF_ENTITIES = [
   'master_bedroom_fan',
-  'master_closet',
-  'master_bathroom_ceiling',
-  'master_bathroom_tub',
+  # 'master_closet',
+  # 'master_bathroom_ceiling',
+  # 'master_bathroom_tub',
   'alex_master_lamp',
   'steph_master_lamp',
-  'study',
+  # 'study',
 ]
 
 
@@ -45,7 +42,7 @@ class AwakeAsleepController(BaseApp):
     self.notifier = self.get_app('notifier')
     self.lights = self.get_app('lights')
     self.sm = self.get_app('security')
-    # self.messages = self.get_app('messages')
+    self.messages = self.get_app('messages')
     self.se = self.get_app('spotify_engine')
 
     self._sleep_lock = threading.Lock()       
@@ -72,6 +69,14 @@ class AwakeAsleepController(BaseApp):
     for entity in ASLEEP_TURN_OFF_ENTITIES:
       self.lights.turn_light_off(entity, override=True)
 
+    msg = self.messages.climate_check()
+    msg += ' ' + self.messages.household_boolean_check()
+
+    if msg:
+      msg += ' Good night.'
+      msg = self.utils.one_space(msg)
+      self.notifier.tts_notify(msg, 'master', volume=35, speaker_override=True)
+
 
   def _last_person_asleep(self):
     self._logger.log('Last person asleep, everyone is asleep.')
@@ -84,19 +89,17 @@ class AwakeAsleepController(BaseApp):
   def _just_asleep_check(self, kwargs):
     """ Check that house is secure when everyone asleep and notify if it is not """
     msg = ''
-    # if self.presence.guest_mode:
-    #   msg = 'Guest mode is turned on. Only a partial house lockdown was done.'
-    # else:
-    #   unsecure_entities = self.sm.get_unsecure_entities(light_check=False, window_check=False, door_check=False)
-    #   if unsecure_entities:
-    #     msg = unsecure_entities + ' Please have a look before going to sleep.'
+    if self.presence.guest_mode:
+      msg = 'Guest mode is turned on. Only a partial house lockdown was done.'
+    else:
+      unsecure_entities = self.sm.get_unsecure_entities(light_check=False, window_check=False, door_check=False)
+      if unsecure_entities:
+        msg = unsecure_entities + ' Please have a look before going to sleep.'
 
     if msg:
       msg += ' Good night.'
-    else:
-      msg = 'Good night. This is needs to be completed.'
-    self.notifier.tts_notify(msg, 'master', volume=28, speaker_override=True, no_greeting=True)
-    self._logger.log(msg)
+      self.notifier.tts_notify(msg, 'master', volume=28, speaker_override=True, no_greeting=True)
+      self._logger.log(msg)
 
 
   def _first_person_awake(self):
@@ -109,21 +112,20 @@ class AwakeAsleepController(BaseApp):
 
     if self.now_is_between(DAY_START, DAY_END):
       # Only run this during the day (prevents accidental message when toggling of awake/asleep)
-      # msg = self.messages.build_message(
-      #   holiday_check=True,
-      #   garbage_check=True,
-      #   water_cactus=True,
-      #   wind_check=True,
-      #   outside_weather=True, 
-      #   uv_check=True,
-      #   inspirational_quote=True,
-      # )
+      msg = self.messages.build_message(
+        holiday_check=True,
+        # garbage_check=True,
+        water_cactus=True,
+        wind_check=True,
+        outside_weather=True, 
+        uv_check=True,
+        inspirational_quote=True,
+      )
 
-      msg = f'Good morning. The forecast today is {self.climate.day_forecast}. Have a good day!'
       self.notifier.tts_notify(msg) # Use all idle media_players
 
-      alex_complete = self.get_state(ALEX_MORNING_GREETING_BOOLEAN) == 'on'
-      steph_complete = self.get_state(STEPH_MORNING_GREETING_BOOLEAN) == 'on'
+      alex_complete = self.get_state(self.const.ALEX_MORNING_GREETING_BOOLEAN) == 'on'
+      steph_complete = self.get_state(self.const.STEPH_MORNING_GREETING_BOOLEAN) == 'on'
       if not alex_complete and not steph_complete:
         song = 'steph'
       elif not steph_complete:
@@ -133,8 +135,8 @@ class AwakeAsleepController(BaseApp):
       else:
         song = 'both'
 
-      self.turn_on(ALEX_MORNING_GREETING_BOOLEAN)
-      self.turn_on(STEPH_MORNING_GREETING_BOOLEAN)
+      self.turn_on(self.const.ALEX_MORNING_GREETING_BOOLEAN)
+      self.turn_on(self.const.STEPH_MORNING_GREETING_BOOLEAN)
 
       day = res = datetime.datetime.now().day
       month = datetime.datetime.now().month
@@ -149,6 +151,19 @@ class AwakeAsleepController(BaseApp):
 
   def _morning_notify(self, target):
     self.notifier.telegram_notify(f'Good morning {target}', 'logging', 'Morning Message')
+    msg = self.messages.build_message(
+      holiday_check=True,
+      # garbage_check=True,
+      outside_weather=True,
+      water_cactus=True,
+      wind_check=True,
+      # fd_battery_check=True,
+      epson_ink_check= True,
+    )
+
+    if msg:
+      msg = one_space(msg)
+      self.notifier.telegram_notify(msg, target, NOTIFY_TITLE)
 
 
   def _sleep_state_change(self, entity, attribute, old, new, kwargs):

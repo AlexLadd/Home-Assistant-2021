@@ -18,6 +18,7 @@ import textwrap
 # Minimum level of logging output (inclusive)
 DEFAULT_LOGGER_CUTOFF = 'DEBUG'
 DEFAULT_LEVEL = 'INFO'
+NOTIFIER_LEVEL_CUTOFF = 'WARNING'
 
 LEVELS = {
         "CRITICAL": 50,
@@ -62,11 +63,11 @@ class CustomLogger(hass.Hass):
     return level in LEVELS
 
 
-  def error(self, msg, level="ERROR", ha_feed=True):
+  def error(self, msg, level="ERROR", ha_feed=True, notify=True):
     self.log(msg, level, ha_feed)
 
 
-  def log(self, msg, level="INFO", ha_feed=False):
+  def log(self, msg, level="INFO", ha_feed=False, notify=True):
     # Get our user defined app log
     logger = self.get_user_log('app_log')
 
@@ -91,10 +92,10 @@ class CustomLogger(hass.Hass):
       # self._log(logger, 'DEBUG', f'Log message below logging cuttoff level (Cutoff: {cutoff}, level: {level}): {msg}')
       return
 
-    self._log(logger, level, msg, ha_feed)
+    self._log(logger, level, msg, ha_feed, notify)
 
 
-  def _log(self, logger, level, msg, ha_feed=False):
+  def _log(self, logger, level, msg, ha_feed=False, notify=True):
     """
     param ha_feed: Whether or not to send message to HA UI Logger feed
     """
@@ -104,7 +105,7 @@ class CustomLogger(hass.Hass):
       logger.log(30, 'Error getting app information for custom logger. Message: {}'.format(msg))
       return
 
-    message_format = ('{lvl} {name}.{mod} - line {ln}: {msg}'
+    message_formatted = ('{lvl} {name}.{mod} - line {ln}: {msg}'
                       .format(lvl=level,
                               name=RE_NAME.match(stack[2][1]).group(1),
                               mod=stack[2][3],
@@ -112,8 +113,12 @@ class CustomLogger(hass.Hass):
                               ln=stack[2].lineno,
                               msg=msg))
 
-    logger.log(20, message_format)
-    # logger.info(message_format) # 'DEBUG' or lower does not appear in logs????
+    logger.log(20, message_formatted)
+    # logger.info(message_formatted) # 'DEBUG' or lower does not appear in logs????
+
+    if notify and LEVELS[level] >= LEVELS[NOTIFIER_LEVEL_CUTOFF]:
+      # Fire event to send notification with this log message
+      self.fire_event('notifier.log_message', message=message_formatted)
 
     # Update the HA UI Logger feed if requested
     if ha_feed:

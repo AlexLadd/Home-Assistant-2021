@@ -42,12 +42,20 @@ class Motion(BaseApp):
     # self.listen_state(self.test, 'input_boolean.ad_testing_4')
 
     self.lights = self.get_app('lights')
+    self.se = self.get_app('spotify_engine')
+    self.sleep = self.get_app('sleep')
+    self.messages = self.get_app('messages')
+    self.notifier = self.get_app('notifier')
 
     # Load in data from config
     self._motion_sensors = {}
     self._motion_data = {}
     self._process_cfg(self.cfg)
     self._setup_generic_sensors(self._motion_data)
+
+    # Custom motion actions
+    for sensor in self._motion_sensors['kitchen'].sensors:
+      self.listen_state(self._kitchen_motion_cb, sensor, new='on')
 
   
   def _process_cfg(self, config):
@@ -74,6 +82,34 @@ class Motion(BaseApp):
     self._motion_sensors = {}
     for name, settings in self._motion_data.items():
       self._motion_sensors[name.lower()] = MotionEntity(self, settings)
+
+
+  def _kitchen_motion_cb(self, entity, attribute, old, new, kwargs):
+    if not self._motion_sensors['kitchen']._should_adjust():
+      self._logger.log('The kitchen custom motion automation is disabled. No morning announcement or song will be played!', level='WARNING')
+      return
+
+    if self.utils.valid_input(old, new) and new == 'on':
+      if (self.get_state(self.const.ALEX_MORNING_GREETING_BOOLEAN) == 'off' and self.sleep.alex_awake) or \
+         (self.get_state(self.const.STEPH_MORNING_GREETING_BOOLEAN) == 'off' and self.sleep.steph_awake):
+
+        msg = self.messages.build_message(
+          holiday_check= True,
+          # garbage_check= True,
+          wind_check=True,
+          outside_weather=True,
+          uv_check=True,
+          inspirational_quote=True,
+        )
+        speaker = 'kitchen'
+        self.notifier.tts_notify(msg, speaker, speaker_override=True)
+        if self.sleep.alex_awake:
+          self.turn_on(self.const.ALEX_MORNING_GREETING_BOOLEAN)
+        if self.sleep.steph_awake:
+          self.turn_on(self.const.STEPH_MORNING_GREETING_BOOLEAN)
+
+        # Play morning song after waiting for message to finish on speaker (Will cancel listener after 10 minutes & will only fire once if successful)
+        self.listen_state(lambda *_: self.se.play_song('both', 'kitchen'), 'media_player.kitchen_speaker', old='playing', new='idle', timeout=10*60, oneshot=True)
 
 
   def test(self, entity, attribute, old, new, kwargs):

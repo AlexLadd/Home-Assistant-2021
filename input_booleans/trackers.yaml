@@ -56,3 +56,7 @@ washing_machine_in_use:
 dryer_in_use:
   name: Dryer in Use
   icon: mdi:tumble-dryer
+
+security_monitoring_is_on:
+  name: Security Monitoring is On
+  icon: mdi:lock

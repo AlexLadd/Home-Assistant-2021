@@ -17,3 +17,8 @@
 
 2021-02-16, 04:23:06 Alex: bedside lamps have brightness of 0 when we are asleep
   -> FIXED - Sleep being on took priority over manual adjustments
+2021-03-04, 08:39:11 Alex: morning message boolean didn't turn on when both set awake upstairs and message played
+
+2021-03-05, 06:03:10 Alex: when both set awake Master bedroom and bathroom light turned off
+
+2021-03-05, 23:58:26 Stephanie: master bathroom ceiling light did not turn off when we were both set to asleep
