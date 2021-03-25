@@ -18,11 +18,10 @@ Last updates: Jan 22, 2021
 
 from base_app import BaseApp 
 from const import MANUAL_HVAC_MODE, AC_MODE_BOOLEAN, HEAT_MODE_BOOLEAN, AUTOMATED_HVAC_MODE_BOOLEAN
+from utils import up_to_date_wrapper
 
 import datetime
-
-# TODO: 
-#   - 
+from functools import wraps
 
 THERMOSTAT = 'climate.entryway'
 DEFAULT_AC_TEMP = 21
@@ -32,7 +31,7 @@ DEFAULT_HEAT_TEMP = 22
 WEATHER_SENSOR = 'weather.home'
 
 # Time since last PWS update before consider 'out of date'
-PWS_MAX_SENSOR_UPDATE_INTERVAL = 10
+PWS_MAX_SENSOR_UPDATE_INTERVAL = 20 # MINUTES
 
 
 class Climate(BaseApp):
@@ -62,12 +61,11 @@ class Climate(BaseApp):
     else:
       return False
 
-
   @property
   def _pws_upto_date(self):
     """ Unit has sent data recently """
     try:
-      last_update = self.get_state('sensor.wupws_temp', attribute='all')['attributes']['date']
+      last_update = self.get_state('sensor.wupws_pressure', attribute='all')['attributes']['date']
     except KeyError:
       return False
 
@@ -91,159 +89,194 @@ class Climate(BaseApp):
       return self.current_outdoor_temp
 
   @property
+  @up_to_date_wrapper('sensor.wupws_temp', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_outdoor_temp(self):
     try:
       return int(float(self.get_state('sensor.wupws_temp')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_temp", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_temp_high_1d', 60*8)
   def todays_high(self):
     try:
       return int(float(self.get_state('sensor.wupws_temp_high_1d')))
     except ValueError:
-      return None
+      try:
+        return int(self.utils.get_last_valid_state(self, "sensor.wupws_temp_high_1d", 'unknown'))
+      except ValueError:
+        return None
 
   @property
+  @up_to_date_wrapper('sensor.wupws_temp_low_1d', 60*8)
   def todays_low(self):
     try:
       return int(float(self.get_state('sensor.wupws_temp_low_1d')))
     except ValueError:
-      return None
+      try:
+        return int(self.utils.get_last_valid_state(self, "sensor.wupws_temp_low_1d", 'unknown'))
+      except ValueError:
+        return None
 
   @property
+  @up_to_date_wrapper('sensor.wupws_uv', 60*14) # Might not update overnight for long periods
   def current_uv(self):
     try:
       return int(float(self.get_state('sensor.wupws_uv')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_uv", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_solarradiation', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_solar_radiation(self):
     # This value is more representative of the sun's progression throughout the day
     # Units: w/m2
     try:
       return int(float(self.get_state('sensor.wupws_solarradiation')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_solarradiation", 'unknown')
   
   @property
+  @up_to_date_wrapper('sensor.wupws_dewpt', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_dew_point(self):
     try:
       return int(float(self.get_state('sensor.wupws_dewpt')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_dewpt", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_humidity', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_humidity(self):
     # Units: %
     try:
       return int(float(self.get_state('sensor.wupws_humidity')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_humidity", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_winddir', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_wind_direction(self):
     # Units: degrees (0 to 360)
     try:
       return int(float(self.get_state('sensor.wupws_winddir')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_winddir", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_windgust', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_wind_gust_speed(self):
     # Units: kph
     try:
       return int(float(self.get_state('sensor.wupws_windgust')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_windgust", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_windspeed', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_wind_speed(self):
     # Units: kph
     try:
       return int(float(self.get_state('sensor.wupws_windspeed')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_windspeed", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_wind_1d', 60*8)
   def average_wind_speed_today(self):
     # Units: kph
     try:
       return int(float(self.get_state('sensor.wupws_wind_1d')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_wind_1d", 'unknown')
   
   @property
+  @up_to_date_wrapper('sensor.wupws_windchill', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_wind_chill(self):
     try:
       return int(float(self.get_state('sensor.wupws_windchill')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_windchill", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_heatindex', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_heat_index(self):
     try:
       return int(float(self.get_state('sensor.wupws_heatindex')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_heatindex", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_precip_chance_1d', 60*8)
   def precip_chance_today(self):
     # % chance of precipitation today
     try:
       return int(float(self.get_state('sensor.wupws_precip_chance_1d')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_precip_chance_1d", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_precip_1d', 60*8)
   def expected_precip_today(self):
     # Amount of precipitation expected today (in mm)
     try:
       return int(float(self.get_state('sensor.wupws_precip_1d')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_precip_1d", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_preciprate', PWS_MAX_SENSOR_UPDATE_INTERVAL)
   def current_precip_rate(self):
     # Current precipitation rate (in mm/h)
     try:
       return int(float(self.get_state('sensor.wupws_preciprate')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_preciprate", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_preciptotal', 60*8)
   def precip_accumulation_today(self):
     # Total precipitation accumulation that has occured today (in mm)
     try:
       return int(float(self.get_state('sensor.wupws_preciptotal')))
     except ValueError:
-      return None
+      return self.utils.get_last_valid_state(self, "sensor.wupws_preciptotal", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_weather_1d', 60*8)
   def day_forecast(self):
     # Text forecast for day time
-    return self.get_state('sensor.wupws_weather_1d')
+    r = self.get_state('sensor.wupws_weather_1d')
+    if r != 'unknown':
+      return r
+    else:
+      return self.utils.get_last_valid_state(self, "sensor.wupws_weather_1d", 'unknown')
 
   @property
+  @up_to_date_wrapper('sensor.wupws_weather_1n', 60*8)
   def night_forecast(self):
     # Text forecast for over night
-    return self.get_state('sensor.wupws_weather_1n')
+    r = self.get_state('sensor.wupws_weather_1n')
+    if r != 'unknown':
+      return r
+    else:
+      return self.utils.get_last_valid_state(self, "sensor.wupws_weather_1d", 'unknown')
 
     # *********** OUTDOOR WEATHER FORECAST ***********
 
   @property
+  @up_to_date_wrapper('sensor.wupws_weather_1n', 60*8)
   def tomorrows_high(self):
     try:
-      return self.get_state('weather.home', attribute='all')['attributes']['forecast'][0]['temperature']
-    except KeyError:
+      return int(self.get_state('weather.home', attribute='all')['attributes']['forecast'][0]['temperature'])
+    except (KeyError, ValueError):
       return None
 
   @property
+  @up_to_date_wrapper('sensor.wupws_weather_1n', 60*8)
   def tomorrows_low(self):
     try:
-      return self.get_state('weather.home', attribute='all')['attributes']['forecast'][0]['templow']
-    except KeyError:
+      return int(self.get_state('weather.home', attribute='all')['attributes']['forecast'][0]['templow'])
+    except (KeyError, ValueError):
       return None
   
   # ********** OUTDOOR SENSORS END **********
@@ -595,7 +628,7 @@ class Climate(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing climate module: ')
-    # self._outdoor_sensor_tests()
+    self._outdoor_sensor_tests()
     # self._indoor_sensor_tests()
     # self._thermostat_tests()
 

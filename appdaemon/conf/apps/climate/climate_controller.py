@@ -145,14 +145,19 @@ class SmartClimate(BaseApp):
       return
 
     # If PWS is not up to date than don't do anything
-    if not self.climate.pws_ready:
-      self._logger.log(f'PWS not ready. HEAT mode will not be updated.', level='WARNING')
-      return
+    # if not self.climate.pws_ready:
+    #   self._logger.log(f'PWS not ready. HEAT mode will not be updated.', level='WARNING')
+    #   return
 
     # Adjust heat mode based on outdoor temperatures - This only occurs during transitional seasons
-    if self.climate.current_outdoor_temp < 0 and self.climate.todays_low < -2 and self.climate.todays_high < 2:
-      self.climate.set_heat_mode('on')
-    elif self.climate.average_indoor_temp < 15:
+    if self.now_is_between(self.const.DAY_START, self.const.DAY_END):
+      if self.climate.todays_low < -2 and self.climate.todays_high < 2:
+        self.climate.set_heat_mode('on')
+    elif self.now_is_between(self.const.DAY_END, self.const.DAY_START):
+      if self.climate.todays_low < -2 and self.climate.tomorrows_high < 2:
+        self.climate.set_heat_mode('on')
+
+    if self.climate.average_indoor_temp < 15:
       self.climate.set_heat_mode('on')
     elif self.climate.current_outdoor_temp > 2 and self.climate.todays_low > 4:
       self.climate.set_heat_mode('off')

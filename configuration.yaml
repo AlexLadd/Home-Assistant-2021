@@ -74,6 +74,7 @@ telegram_bot:
       - !secret telegram_alarm_chat_id
       - !secret telegram_reporting_chat_id
       - !secret telegram_alex_user_id
+      - !secret telegram_steph_user_id
 
 # Aliases for notification platforms/services
 notify:

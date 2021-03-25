@@ -47,7 +47,7 @@ class LivingRoomTV(BaseApp):
 
   @property
   def is_on(self):
-    return self.get_state(LIVING_ROOM_TV_BOOLEAN) == 'on'
+    return bool(self.get_state(LIVING_ROOM_TV_BOOLEAN) == 'on')
 
   @property
   def volume_level(self):
@@ -92,7 +92,7 @@ class LivingRoomTV(BaseApp):
       if self.dark_mode:
         self.lights.turn_light_off(LIVING_ROOM_FAN)
         self.lights.turn_light_on(LIVING_ROOM_LIGHTSTRIP, colour=[183,200,255], brightness=30)
-        self.lights.turn_light_on(LIVING_ROOM_LAMPS, brightness=15)
+        self.lights.turn_light_on(LIVING_ROOM_LAMPS, brightness=35)
 
 
   def _turn_off(self):
@@ -128,7 +128,7 @@ class LivingRoomTV(BaseApp):
       if self.is_on:
         self.lights.turn_light_off(LIVING_ROOM_FAN)
         self.lights.turn_light_on(LIVING_ROOM_LIGHTSTRIP, colour=[183,200,255], brightness=30)
-        self.lights.turn_light_on(LIVING_ROOM_LAMPS, brightness=20)
+        self.lights.turn_light_on(LIVING_ROOM_LAMPS, brightness=35)
 
 
   def _volume_state_change(self, entity, attribute, old, new, kwargs):

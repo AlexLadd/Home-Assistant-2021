@@ -1,0 +1,8 @@
+
+  living_room_fireplace:
+    module: living_room_fireplace
+    class: LivingRoomFireplace
+    dependencies: 
+      - custom_logger
+      - lights
+      - living_room_tv

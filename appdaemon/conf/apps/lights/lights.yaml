@@ -171,7 +171,7 @@ lights:
       aliases:
         - master bathroom tub
       entity_id: light.master_bathroom_tub
-      # switch_entity_id: switch.master_bathroom_tub
+      switch_entity_id: switch.master_bathroom_tub
       light_disable_states: 
         - input_boolean.master_tub_in_use, ==, on
         - input_boolean.master_shower_in_use, ==, on
@@ -221,6 +221,10 @@ lights:
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
     living_room_fan:
+      aliases:
+        - living room fan
+        - living_room_fan_light
+        - living room fan light
       entity_id: light.living_room_fan_light
       parent_light: living_room
       child_bulbs:
@@ -232,6 +236,9 @@ lights:
         use_lux: 'sensor.average_light_level'
         lux_threshold: 75
     living_room_lamps:
+      aliases:
+        - living room lamps
+        - family room lamps
       entity_id: light.living_room_lamps
       parent_light: living_room
       child_bulbs:

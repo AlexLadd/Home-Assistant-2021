@@ -54,8 +54,8 @@ class Notifier(BaseApp):
     self.telegram_notify(data.get('message', 'ERROR: No Message Provided'), 'logging', 'Log Error')
 
 
-  def telegram_notify(self, msg, target=[], title='', disable_notification=False, tag=''):
-    self.telegram.telegram_notify(msg, target, title, disable_notification, tag)
+  def telegram_notify(self, msg, target=[], title='', disable_notification=False, tag='', inline_keyboard=[]):
+    self.telegram.telegram_notify(msg, target, title, disable_notification, tag, inline_keyboard)
 
 
   def terminate(self):

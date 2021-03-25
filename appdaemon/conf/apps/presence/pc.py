@@ -121,7 +121,9 @@ class PC(BaseApp):
     self.sm.disarm_security_system()
 
     if self.dark_mode:
-      self.cancel_timer(self.handle_front_lights)
+      if self.handle_front_lights is not None:
+        self.cancel_timer(self.handle_front_lights)
+        self.handle_front_lights = None
       lts = ['outside_carport', 'kitchen_door']
       self.lights.turn_light_on(lts)
       self.handle_front_lights = self.run_in(lambda *_: self.lights.turn_light_off(lts), LIGHTS_ON_WHEN_HOME_TIME)

@@ -356,10 +356,13 @@ class LightController(BaseApp):
     # Turn off all switches
     for name, lt in self._lights_obj.items():
       if lt.entity_id.startswith('switch.'):
-        # self._logger.log(f'Turning off {name} ({lt.entity_id})')
         # lt.turn_light_off(override=True)
         self.turn_off(lt.entity_id)
-
+      if lt.entity_id.startswith('light.') and not lt.is_colour:
+        # Dimable switches don't have colour but are light. entities
+        # lt.turn_light_off(override=True)
+        self.turn_off(lt.entity_id)
+    
 
   def turn_light_off(self, light, transition=None, override=False):
     if isinstance(light, str):
@@ -495,7 +498,7 @@ class Light:
       elif state and state == 'off':
         self._switch_is_on = False
       else:
-        self._logger.log(f'[{self.friendly_name}] {self.switch_entity_id} is in an unknown state during startup, current state: "{state}".', level='WARNING')
+        self._logger.log(f'[{self.friendly_name}] {self.switch_entity_id} is in an unknown state during startup, current state: "{state}".', level='WARNING', notify=False)
 
     # Listen for related lights signaling this light if they exists
     if self.parent_light or self.child_lights:
@@ -527,7 +530,7 @@ class Light:
     self._previous_light_state = self.app.get_state(self.entity_id, attribute='all')
     
     if self.parent_light:
-      self._logger.log(f'Firing parent event for "{self.parent_light}" from "{self.name}".', level='NOTSET')
+      self._logger.log(f'Firing parent event for "{self.parent_light}" from "{self.name}".', level='DEBUG')
       self.app.fire_event(RELATED_LIGHTS_EVENT, device=self.parent_light, should_be_on=state)
     elif self.child_lights:
       for lt in self.child_lights:
@@ -796,6 +799,10 @@ class Light:
       elif service == 'light/turn_off' and (self._is_on or self._should_be_on):
         self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR', notify=False)
   
+    # Trying to track down why lights sometimes turn on dimmer than they should (very dim...)
+    if kwargs.get('brightness_pct', 1000) < 30 or kwargs.get('brightness', 1000) < 30:
+      self._logger.log(f'[{self.name}] LOW BRIGHTNESS - {service} using {kwargs}')
+
 
   def turn_light_off(self, transition=None, override=False):
     if not self._should_adjust(override, turning_on=False):
@@ -936,6 +943,7 @@ class Light:
     should_be_on = data.get('should_be_on', None)
     if should_be_on is not None:
       self._related_light_is_on = should_be_on
+
 
   @property
   def log_level(self):

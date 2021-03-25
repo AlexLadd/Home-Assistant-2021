@@ -24,7 +24,7 @@ class AlarmController(BaseApp):
 
 
   def _disarmed_callback(self, entity, attribute, old, new, kwargs):
-    # self.sm.turn_off_emergency_mode()
+    self.sm.turn_off_emergency_mode()
     if not self.presence.occupancy and self.alarm.disarmed:
       msg = 'The alarm was disarmed while nobody is home. Please have a look.'
       self._logger.log(msg, level='WARNING')

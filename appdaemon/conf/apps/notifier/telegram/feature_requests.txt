@@ -54,9 +54,47 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
 
 2021-03-03, 13:25:33 Alex: add scene and light control functionality to hue dimmer in master bathroom
 
-
 2021-03-03, 21:47:26 Alex: build a reminder system similar to the reporting system
 
 2021-03-06, 21:43:03 Alex: add garbage email to Google calender somehow
 
 2021-03-06, 21:46:25 Alex: build smart water bowl and food bowl monitoring. Maybe add a sensor to a door/window sensor and trigger when dropping to bottom of bowl
+
+2021-03-07, 16:48:03 Stephanie: work on load cell sensors
+
+2021-03-07, 16:48:16 Stephanie: remove Steph from logging
+  -> DONE - Removed March 11
+
+2021-03-07, 19:03:28 Stephanie: telegram steph user ID 1566980076. Add to config to potentially let her press buttons and get an event callback
+  -> DONE - Added to config March 8
+
+2021-03-10, 07:03:00 Alex: add Master bathroom tub switch to light app
+  -> DONE - Added March 11
+
+2021-03-10, 19:02:07 Stephanie: remove steph from logging
+  -> DONE - Removed March 11
+
+2021-03-10, 21:41:38 Stephanie: add names to the good morning message
+  -> DONE - Added March 11
+
+2021-03-13, 17:48:02 Alex: fireplace OLED - change FP status to a temperature slider, finish scenes and make lights on keep the lights on permanently, remove the first page (status), create a pop-up to notify if the ac is on for example.
+
+2021-03-14, 11:33:37 Stephanie: set up notifications for study door
+
+2021-03-15, 19:16:52 Alex: convert 3d printer job completion time from minutes to hours for long jobs
+
+2021-03-15, 19:17:20 Alex: turn up tts notifier volume level. Overall or on a message basis?
+
+2021-03-17, 21:31:35 Stephanie: move boolean page to top of the app for easy access
+
+2021-03-18, 19:39:24 Alex: change UPS to only follow the percent to stop false alarm messages. The UPS frequently goes unknown and sometime goes to OL to OL CHRG which indicates it was using batteries and is now charging again according to the current setup.
+
+2021-03-21, 21:34:10 Stephanie: add button to play music in master bedroom, with calming music to play at night
+
+2021-03-21, 23:58:46 Alex: add multi sensor to cold room to track temp and humidity
+
+2021-03-22, 22:26:28 Alex: monitor docker containers
+
+2021-03-22, 22:27:12 Alex: add motion sensor and power switch to cat water bowl
+
+2021-03-23, 21:11:09 Stephanie: play 3 songs when wake up music plays

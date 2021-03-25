@@ -143,7 +143,7 @@ motion_master:
         - binary_sensor.kitchen_closet_pir_sensor
       on_lights:
         - switch.kitchen_closet
-      on_duration: 2*60
+      on_duration: 200*60
 
     basement_stairs:
       # log_level: INFO 

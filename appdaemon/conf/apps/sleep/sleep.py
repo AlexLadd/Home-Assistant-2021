@@ -25,6 +25,7 @@ Last updates: Jan 22, 2021
 
 from base_app import BaseApp 
 import datetime
+import threading
 
 
 class AwakeAsleep(BaseApp):
@@ -32,6 +33,12 @@ class AwakeAsleep(BaseApp):
   def setup(self):
     # self.listen_state(self.test,'input_boolean.ad_testing_1')
     self.presence = self.get_app('presence')
+
+    self._sleep_lock = threading.Lock()  
+
+    # Track alex/steph individually 
+    self.listen_state(self._sync_everyone_states, self.const.ALEX_AWAKE_BOOLEAN) 
+    self.listen_state(self._sync_everyone_states, self.const.STEPH_AWAKE_BOOLEAN) 
 
   @property
   def steph_awake(self):
@@ -66,35 +73,36 @@ class AwakeAsleep(BaseApp):
     return bool(self.get_state(self.const.EVERYONE_ASLEEP_BOOLEAN) == 'off')
 
 
-  def sync_everyone_states(self):
+  def _sync_everyone_states(self, entity, attribute, old, new, kwargs):
     # If noone is home, consider everyone awake
-    if self.presence.alex_away and self.presence.steph_away:
-      self.turn_on(self.const.EVERYONE_AWAKE_BOOLEAN)
-      self.turn_off(self.const.EVERYONE_ASLEEP_BOOLEAN)
-    elif self.presence.alex_away:
-      if self.steph_awake:
+    with self._sleep_lock:
+      if self.presence.alex_away and self.presence.steph_away:
         self.turn_on(self.const.EVERYONE_AWAKE_BOOLEAN)
         self.turn_off(self.const.EVERYONE_ASLEEP_BOOLEAN)
+      elif self.presence.alex_away:
+        if self.steph_awake:
+          self.turn_on(self.const.EVERYONE_AWAKE_BOOLEAN)
+          self.turn_off(self.const.EVERYONE_ASLEEP_BOOLEAN)
+        else:
+          self.turn_off(self.const.EVERYONE_AWAKE_BOOLEAN)
+          self.turn_on(self.const.EVERYONE_ASLEEP_BOOLEAN)
+      elif self.presence.steph_away:
+        if self.alex_awake:
+          self.turn_on(self.const.EVERYONE_AWAKE_BOOLEAN)
+          self.turn_off(self.const.EVERYONE_ASLEEP_BOOLEAN)
+        else:
+          self.turn_off(self.const.EVERYONE_AWAKE_BOOLEAN)
+          self.turn_on(self.const.EVERYONE_ASLEEP_BOOLEAN)
       else:
-        self.turn_off(self.const.EVERYONE_AWAKE_BOOLEAN)
-        self.turn_on(self.const.EVERYONE_ASLEEP_BOOLEAN)
-    elif self.presence.steph_away:
-      if self.alex_awake:
-        self.turn_on(self.const.EVERYONE_AWAKE_BOOLEAN)
-        self.turn_off(self.const.EVERYONE_ASLEEP_BOOLEAN)
-      else:
-        self.turn_off(self.const.EVERYONE_AWAKE_BOOLEAN)
-        self.turn_on(self.const.EVERYONE_ASLEEP_BOOLEAN)
-    else:
-      if self.alex_awake and self.steph_awake:
-        self.turn_on(self.const.EVERYONE_AWAKE_BOOLEAN)
-      else:
-        self.turn_off(self.const.EVERYONE_AWAKE_BOOLEAN)
+        if self.alex_awake and self.steph_awake:
+          self.turn_on(self.const.EVERYONE_AWAKE_BOOLEAN)
+        else:
+          self.turn_off(self.const.EVERYONE_AWAKE_BOOLEAN)
 
-      if self.alex_awake or self.steph_awake:
-        self.turn_off(self.const.EVERYONE_ASLEEP_BOOLEAN)
-      else:
-        self.turn_on(self.const.EVERYONE_ASLEEP_BOOLEAN)
+        if self.alex_awake or self.steph_awake:
+          self.turn_off(self.const.EVERYONE_ASLEEP_BOOLEAN)
+        else:
+          self.turn_on(self.const.EVERYONE_ASLEEP_BOOLEAN)
   
 
   def set_steph(self, state):

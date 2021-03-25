@@ -57,9 +57,9 @@ STEPH_AWAY_BOOLEAN = 'input_boolean.steph_away'
 # STEPH_WAKEUP_TIME = '08:58:00'
 
 
-# DAY_START = '03:30:00'
-# DAY_END = '15:00:00'
-# NIGHT_END = '22:30:00'
+DAY_START = '03:30:00'
+DAY_END = '15:00:00'
+NIGHT_END = '22:30:00'
 
 # Rough times we would be set to asleep
 BEDTIME_START = '18:00:00'

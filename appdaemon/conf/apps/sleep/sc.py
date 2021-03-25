@@ -18,7 +18,7 @@ DEFAULT_STEPH_WAKEUP_TIME = '07:57:00'
 SECURITY_MONITORING_FREQUENCY = 10*60
 
 NOTIFY_TARGET = 'everyone'
-NOTIFY_TITLE = 'Good Morning'
+NOTIFY_TITLE = 'Sleep Controller'
 
 ASLEEP_TURN_OFF_ENTITIES = [
   'master_bedroom_fan',
@@ -70,7 +70,11 @@ class AwakeAsleepController(BaseApp):
       self.lights.turn_light_off(entity, override=True)
 
     msg = self.messages.climate_check()
-    msg += ' ' + self.messages.household_boolean_check()
+
+    # climate_check should catch this but keeping it here for now as a fallback
+    if self.climate.todays_low <= 0 and self.messages.entry_point_check() != "All doors and windows are closed.":
+      msg += f' The overnight low is {self.climate.todays_low} and {self.messages.entry_point_check().lower()}'
+      self.climate.outside_tem
 
     if msg:
       msg += ' Good night.'
@@ -150,7 +154,7 @@ class AwakeAsleepController(BaseApp):
 
 
   def _morning_notify(self, target):
-    self.notifier.telegram_notify(f'Good morning {target}', 'logging', 'Morning Message')
+    # self.notifier.telegram_notify(f'Good morning {target}', 'logging', 'Morning Message')
     msg = self.messages.build_message(
       holiday_check=True,
       # garbage_check=True,
@@ -162,7 +166,14 @@ class AwakeAsleepController(BaseApp):
     )
 
     if msg:
-      msg = one_space(msg)
+      msg = f'Good morning {target.title()}. {self.utils.one_space(msg)}'
+      self.notifier.telegram_notify(msg, target, NOTIFY_TITLE)
+
+
+  def _night_notify(self, target):
+    msg = self.messages.household_boolean_check()
+    if msg:
+      msg = self.utils.one_space(msg) + ' Good night'
       self.notifier.telegram_notify(msg, target, NOTIFY_TITLE)
 
 
@@ -170,7 +181,6 @@ class AwakeAsleepController(BaseApp):
     if self.utils.valid_input(old, new):
       with self._sleep_lock:
         # Ensure proper execution when both Alex & Steph toggled at same time
-        self.sleep.sync_everyone_states()
         if entity == self.const.ALEX_AWAKE_BOOLEAN:
           self._person_state_change('alex', new)
         elif entity == self.const.STEPH_AWAKE_BOOLEAN:
@@ -185,6 +195,8 @@ class AwakeAsleepController(BaseApp):
         self._morning_notify(person.lower())
     elif state == 'off': # asleep
       self._logger.log(f'{person.title()} is asleep.')
+      if self.now_is_between(DAY_END, DAY_START):
+        self._night_notify(person.lower())
 
 
   def _timed_wakeup(self, kwargs):

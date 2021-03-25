@@ -36,7 +36,8 @@ STUDY_DOOR_SENSOR = 'binary_sensor.study_outside_door_sensor'
 
 FRONT_DOOR_RECENTLY_OPEN_TIME = 10*60
 KITCHEN_DOOR_RECENTLY_OPEN_TIME = 10*60
-DOOR_INITIAL_OPEN_NOTIFY_TIME = 5*60
+DOOR_OPEN_INITIAL_NOTIFY_TIME = 5*60
+DOOR_OPEN_REPEAT_NOTIFY_TIME = 10*60
 DOOR_OPEN_LIGHTS_ON_TIME = 15*60
 KITCHEN_DOOR_OPEN_LIGHTS = ['outside_carport', 'kitchen_door']
 
@@ -56,8 +57,8 @@ class DoorsWindows(BaseApp):
     self._handle_kitchen_door_open = None
 
     self.listen_state(self._kitchen_door_opened_cb, KITCHEN_DOOR_SENSOR, old='off', new='on')
-    self.listen_state(self._door_open_notify, KITCHEN_DOOR_SENSOR, new='on', duration=DOOR_INITIAL_OPEN_NOTIFY_TIME)
-    self.listen_state(self._door_open_notify, FRONT_DOOR_SENSOR, new='on', duration=DOOR_INITIAL_OPEN_NOTIFY_TIME)
+    self.listen_state(self._door_open_notify, KITCHEN_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME)
+    self.listen_state(self._door_open_notify, FRONT_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME)
 
     
   @property
@@ -166,9 +167,13 @@ class DoorsWindows(BaseApp):
     if self.is_open(door):
       time = int(self.utils.last_changed(self, door)/60)
       msg = f'The "{self.friendly_name(door)}" ({door}) door has been open for "{time}" minutes.'
-      self.notifier.telegram_notify(msg, 'status', NOTIFY_TITLE)
+      self.notifier.telegram_notify(msg, ['status', 'alarm'], NOTIFY_TITLE)
       self._logger.log(msg, level='WARNING')
-      self.run_in(self._door_open_notify_timer, FRONT_DOOR_REPLEAT_OPEN_NOTIFY_TIME, door=door)
+      
+      tts_msg = f'The {self.friendly_name(door)}door has been open for {time} minutes.'
+      self.notifier.tts_notify(tts_msg, speaker_override=True)
+      
+      self.run_in(self._door_open_notify_timer, DOOR_OPEN_REPEAT_NOTIFY_TIME, door=door)
     else:
       time = int(self.utils.last_changed(self, door)/60)
       msg = f'The "{self.friendly_name(door)}" ({door}) door has been closed for "{time}" minutes.'

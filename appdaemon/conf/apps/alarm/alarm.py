@@ -340,8 +340,14 @@ class Alarm(BaseApp):
     param alary_type: armed_home, armed_away, armed_night, etc as a String
     """
     for data in config.values():
-      alarm_settings = data.get(alarm_type, None) or data.get(CONF_ARMED, None)
       entity_ids = data.get(CONF_ENTITY_ID)
+      if CONF_LIGHT_DISABLE_STATES in data:
+        for constraint in data[CONF_LIGHT_DISABLE_STATES]:
+          if self.constraint_compare(constraint): 
+            self._logger.log(f'{alarm_type} will not use {entity_id}) becaues it has a registered constraint: {constraint}, result: {self.constraint_compare(constraint)}).', level='INFO')
+            return
+
+      alarm_settings = data.get(alarm_type, None) or data.get(CONF_ARMED, None)
       if alarm_settings:
         for e in entity_ids:
           self._register_alarm_entity(e, alarm_settings, new, old)

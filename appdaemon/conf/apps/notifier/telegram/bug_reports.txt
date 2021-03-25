@@ -17,8 +17,67 @@
 
 2021-02-16, 04:23:06 Alex: bedside lamps have brightness of 0 when we are asleep
   -> FIXED - Sleep being on took priority over manual adjustments
+
 2021-03-04, 08:39:11 Alex: morning message boolean didn't turn on when both set awake upstairs and message played
+  -> STALE - To much has changed in this system for this to be relavent
 
 2021-03-05, 06:03:10 Alex: when both set awake Master bedroom and bathroom light turned off
+  -> NOT_SURE - Maybe just a coincidence? How was master bedroom on when asleep to begin with??
 
 2021-03-05, 23:58:26 Stephanie: master bathroom ceiling light did not turn off when we were both set to asleep
+  -> FIXED - master_bathroom_light is a dimable switch so was not caught in lights.turn_all_off() call
+
+2021-03-07, 18:55:39 Alex: there is a mistake with a living_room_fan_light turn off call. Not is the light module most likely but perhaps the call is spelling the name wrong
+  -> SHOULD_BE_FIXED - Added living_room_fan_light to living_room_fan aliases
+
+2021-03-08, 21:58:46 Stephanie: outdoor temp was -1 and we were both set to sleep and nothing was said about it in the tts message (both set to sleep at the same time)
+  -> SEE BUG REPORT 3 OR 4 BELOW THIS
+
+2021-03-08, 21:59:12 Stephanie: sleep message talked about manual hvac message twice
+  -> FIXED - Split up climate_check & boolean_check into TTS & Telegram messages so the HVAC does repeat and the booleans don't need to be TTS message anyways...
+
+2021-03-09, 09:01:19 Alex: security monitoring turn on when last person leaves but it is detecting someone home and awake when they have already left
+  -> FIXED - Changed security_monitoring check from self.anyone_home() to self.presence.occupancy
+
+2021-03-09, 09:02:06 Alex: an app is trying to use a speaker called "night" - potentially the alarm or security app
+  -> FIXED - speakers.set_volume() had a set_volume('night') call built into it... it was removed
+
+2021-03-09, 21:15:15 Stephanie: master bedroom window was open and the goodnight message did not say anything
+  -> FIXED - this was working okay (manual HVAC mode was on so the windows were not being checked the same way) but added in a redundent check when in this state
+
+2021-03-10, 09:56:57 Alex: home armed away when I was home. Person.alex said I was away but life360 said I was at home all day...
+  -> FIXED - person.alex wasn't using alex_phone_wifi but is now
+
+2021-03-10, 19:02:46 Stephanie: when the living room tv is on, the lamps should be brighter
+  -> FIXED - Changed brightness from 20 to 35
+
+2021-03-10, 19:03:04 Stephanie: dining room light turning on dim.... WHY?????????????????????????????
+
+2021-03-11, 08:27:54 Alex: tts played when we were both asleep last night
+  -> FIXED - this was actually the bathroom speaker not the master bedroom but it was removed when asleep
+
+2021-03-11, 08:28:26 Alex: fix door open for 5 minutes message. Remove raw sensor from tts message
+  -> FIXED - removed the raw sensor string from tts message
+
+2021-03-11, 20:54:17 Stephanie: buttons did not work to go to sleep
+  -> FIXED - BUG in SC Module from yesterday and it was not running over nights since the bug was missed
+
+2021-03-14, 11:32:25 Stephanie: when good night message plays, check doors and send message to say what doors are open
+  -> THERE WAS AN ERROR IN THE CONTROLLER THAT MAY HAVE CAUSED THIS...
+
+2021-03-14, 21:24:28 Alex: nightly notify did not read Temps correctly. Remove the checks? Use alternative weather app?
+  -> FIXED - Removed blocking pws_check() in climate_check() from message app
+
+2021-03-15, 14:19:35 Alex: alarm doesn't arm when last person leaves home but security_monitoring turns on
+  -> ADDED SOME LOGGING HERE TO HELP
+
+2021-03-16, 16:25:37 Alex: first person awake tts played upatairs
+  -> FIXED - emergency_mode was on since the turn off call wasnt called when the alarm went from triggered -> not triggered
+
+2021-03-16, 21:37:57 Stephanie: good night message says good morning
+  -> FIXED - the SC module notify_title was "Good Morning"
+
+2021-03-17, 21:31:14 Stephanie: emergency mode is not turning off
+  -> FIXED - Error in security module turn_off_emergency_mode() line 248 that was fixed
+
+2021-03-23, 21:10:50 Stephanie: music did not play when I got home

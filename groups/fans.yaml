@@ -1,0 +1,8 @@
+
+# Exhaust Fan Master Group
+
+exhaust_fans_master:
+  name: "Exhaust Fans"
+  entities:
+    - switch.main_bathroom_fan
+    - switch.master_bathroom_fan

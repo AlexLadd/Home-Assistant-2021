@@ -137,8 +137,10 @@ class SecurityManager(BaseApp):
     self.lights.turn_all_off()
     self.living_room_tv.turn_off_tv()
     if self.presence.occupancy:
+      self._logger.log(f'Someone is home - should be arming_home now.')
       self.alarm.arm_home()
     else:
+      self._logger.log(f'Nobody is home - should be arming_away now.')
       self.alarm.arm_away()
 
 
@@ -204,8 +206,7 @@ class SecurityManager(BaseApp):
 
   def _security_monitoring(self, kwargs):
     """ Verify that the house stays locked down """
-    self._logger.log(f'_security_monitoring called')
-    if self.anyone_home() and self.sleep.someone_awake:
+    if self.presence.occupancy and self.sleep.someone_awake:
       self._logger.log('Security monitoring is running while someone is home and awake, shutting down now.', level='WARNING')
       self.stop_security_monitoring()
       return
@@ -234,16 +235,16 @@ class SecurityManager(BaseApp):
 
   def turn_on_emergency_mode(self):
     if not self.emergency_mode:
-      message = 'Emergency mode turned on.'
-      self._logger.log(message, level='INFO')
+      msg = 'Emergency mode turned on.'
+      self._logger.log(msg, level='INFO')
       self.notifier.telegram_notify(msg, NOTIFY_TARGET, NOTIFY_TITLE) 
       self.turn_on(self.const.EMERGENCY_MODE_BOOLEAN)
 
 
   def turn_off_emergency_mode(self):
     if self.emergency_mode:
-      message = 'Emergency mode turned off.'
-      self._logger.log(message, level='INFO')
+      msg = 'Emergency mode turned off.'
+      self._logger.log(msg, level='INFO')
       self.notifier.telegram_notify(msg, NOTIFY_TARGET, NOTIFY_TITLE) 
       self.turn_off(self.const.EMERGENCY_MODE_BOOLEAN)
 

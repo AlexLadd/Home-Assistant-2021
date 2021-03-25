@@ -204,7 +204,7 @@ class Speakers(BaseApp):
     return list(set(result))
 
 
-  def get_sanitized_speakers(self, speaker=None, speaker_override=False, use_groups=False):
+  def get_sanitized_speakers(self, speaker=None, speaker_override=False, use_groups=True):
     """ 
     Takes in speaker(s) as a string/list and maps speaker aliases to media_player(s)
     Returns available speakers (unless overridden) as a list
@@ -241,9 +241,13 @@ class Speakers(BaseApp):
         if not self.sleep.everyone_awake:
           if self.map_speaker_to_entity('master') in mp:
             mp.remove(self.map_speaker_to_entity('master'))
-          if use_groups and set(mp) == set(self.map_speaker_to_entity('no_bedrooms')):
-            mp = [self.map_speaker_to_entity('no_bedrooms')]
+          if self.map_speaker_to_entity('master_bathroom') in mp:
+            mp.remove(self.map_speaker_to_entity('master_bathroom'))
 
+        self._logger.log(f'use_groups is to True by default as a TEST.', level='INFO')
+        # Join speakers into groups - Sound isn't offset between speakers this way
+        if use_groups and set(mp) == set(self.map_speaker_to_entity('no_bedrooms')):
+          mp = [self.map_speaker_to_entity('no_bedrooms')]
         if use_groups and set(mp) == set(self.all_speaker_no_groups):
           mp = [self.map_speaker_to_entity('all')]
 
@@ -291,12 +295,6 @@ class Speakers(BaseApp):
       #   vol = 0.7
       if volume is not None:
         vol = volume
-      elif self.sleep.someone_asleep and mp == self.map_speaker_to_entity('master'):
-        vol = self.default_volume('asleep')
-      elif mp == self.map_speaker_to_entity('master') and self.now_is_between(self.const.DEFAULT_ASLEEP, self.const.DEFAULT_WAKEUP):
-        vol = self.default_volume('night')
-      elif 'all' in mp or 'speakers' in mp:
-        vol = self.default_volume('groups')
       else:
         vol = self.default_volume(mp)
 

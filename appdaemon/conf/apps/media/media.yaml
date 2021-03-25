@@ -103,7 +103,9 @@ speakers:
 
     all_main_floor:
       aliases:
-        - all speakers
+        - all main floor
+        - all_main_floor_speakers
+        - all main floor speakers
       entity_id: media_player.main_floor_speakers
       is_group: True
       default_volume: 0.35

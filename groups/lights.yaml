@@ -11,6 +11,7 @@ lights_master:
     - light.steph_master_lamp
     - light.master_bathroom_ceiling
     - light.master_bathroom_tub
+    - switch.master_bathroom_tub
     - switch.upstairs_stair
     - switch.small_bedroom
     - switch.main_hallway
@@ -20,7 +21,9 @@ lights_master:
     - light.living_room_lamps
     - light.living_room_tv
     - light.dining_room
+    - switch.dining_room
     - light.kitchen_ceiling
+    - switch.kitchen_ceiling
     - switch.kitchen_door
     - switch.kitchen_closet
     - switch.basement_stairs

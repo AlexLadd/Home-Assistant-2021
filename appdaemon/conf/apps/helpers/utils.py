@@ -7,6 +7,7 @@ Appdaemon helper functions
 import datetime
 import os
 import re
+from functools import wraps
 
 from const import (DARK_MODE_BOOLEAN,
                   WINTER_MONTH_START, WINTER_MONTH_END, AC_MONTH_START, AC_MONTH_END,
@@ -192,3 +193,57 @@ def clean_path(path, remove_lead=False):
       res.append(c)
   return ''.join(res).rstrip('/')
 
+
+# ****************   VALIDATION FUNCTIONS   **********************
+
+# Check if a sensor has been updated recently and log error if not
+# NOTE: ONLY WORKS WITH APPS THAT USE AppBase (_logger is used)
+def up_to_date_wrapper(sensor, max_offset):
+  def wrapper(method):
+    @wraps(method)
+    def wrapped(self, *method_args, **method_kwargs):
+      # self._logger.log(f'Checking if {sensor} is up to date.')
+      try:
+        # This is exlusive to the PWS (perhaps others?)
+        last_update = self.get_state(sensor, attribute='all')['attributes']['date']
+        last_update = datetime.datetime.strptime(last_update, '%Y-%m-%d %H:%M:%S')
+      except KeyError:
+        try:
+          last_update = self.get_state(sensor, attribute='all')['last_updated'][:-6] # +00:00 at the end (TZ info?)
+          last_update = datetime.datetime.strptime(last_update, '%Y-%m-%dT%H:%M:%S.%f')
+        except KeyError:
+          self._logger.log(f'Sensor ({sensor}) failed to check last updated time. Current state: {self.get_state(sensor, attribute="all")}.')
+          return method(self, *method_args, **method_kwargs)
+
+      diff = self.datetime() - last_update
+      mins_since_last_update = int(diff.total_seconds()/60) # Rounded down to nearest minute
+      if mins_since_last_update > max_offset:
+        self._logger.log(f'Sensor ({sensor}) is not up to date. Last update: {last_update}.', 'WARNING')
+
+      return method(self, *method_args, **method_kwargs)
+    return wrapped
+  return wrapper
+
+
+def get_last_valid_state(self, sensor, invalid_state, days_in_past=1):
+  """
+  Return the last valid state for a given sensor in the provided timeframe
+  Returns None is no valid states found
+
+  param self: Appdaemon app (self to the app)
+  param sensor: Senosr to check
+  param invalid_state: State for sensor that is considered out of date
+  param days_in_past: Number of day of history to check
+  """
+  most_recent_valid_dt = None
+  most_recent_valid_state = None
+  for x in self.get_history(sensor, days=days_in_past, end_time=self.datetime())[0]:
+    s = x.get('state', invalid_state)
+    dt = x.get('attributes', {}).get('date', None)
+
+    if s != invalid_state:
+      if most_recent_valid_dt is None or dt > most_recent_valid_dt:
+        most_recent_valid_dt = dt
+        most_recent_valid_state = s
+      # self._logger.log(f'Found a valid state: {s} at {dt}. most_recent_valid_state: {most_recent_valid_state}, most_recent_valid_dt: {most_recent_valid_dt}')
+  return most_recent_valid_state

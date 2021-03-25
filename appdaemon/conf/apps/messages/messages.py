@@ -103,7 +103,7 @@ class Messages(BaseApp):
       are_on.append('manual hvac mode')
 
     if are_on:
-      msg = self.const.list_to_pretty_print(are_on, 'on')
+      msg = self.utils.list_to_pretty_print(are_on, 'on')
     
     if self.get_state(self.const.SPEECH_OVERRIDE_BOOLEAN) == 'off':
       msg += ' Speech mode is off so no messages will be heard except for this one. '
@@ -166,31 +166,36 @@ class Messages(BaseApp):
     msg = ''
 
     if not self.climate.manual_hvac_mode:
-      if self.climate.pws_ready:
-        todays_low = self.climate.todays_low
-        if todays_low > 10:
-          if not self.climate.ac_mode and not master_open:
-            msg += f' The overnight low is {todays_low} degrees and the air conditioner mode is off and no master bedroom windows are open.'
-          elif self.climate.ac_mode and dw_open:
-              msg += ' The AC mode is on and the windows or doors are open.'
-        elif todays_low < -11:
-          if not self.climate.heat_mode:
-            msg += f' The heat mode is off and the over night low is {todays_low} degrees. Something is wrong!'
-          elif dw_open:
-            msg += f' The heat mode is on and the over night low is {todays_low} degrees. Please close the windows.'
-          if self.climate.target_temperature < 20:
-            msg += f' The over night low is {todays_low} degrees and the thermostat temerature is {self.climate.target_temperature}.'
-        elif todays_low < 1:
-          if not self.climate.heat_mode:
-            msg += f' The heat mode is off and the over night low is {todays_low} degrees. You may want to turn on the heat.'
-          elif self.climate.heat_mode and dw_open:
-            msg = f' The heat mode is on and the over night low is {todays_low} degrees.'
-          elif dw_open:
-            msg += f' The windows or doors are open and the over night low is {todays_low} degrees.'
-      else:
-        msg += ' Home assistant is not reading the outdoor temperatures correctly.'
+      if not self.climate.pws_ready:
+        msg += ' Home assistant is not reading the outdoor weather station temperatures correctly.'
+      todays_low = self.climate.todays_low
+      if todays_low > 10:
+        if not self.climate.ac_mode and not master_open:
+          msg += f' The overnight low is {todays_low} degrees and the air conditioner mode is off and no master bedroom windows are open.'
+        elif self.climate.ac_mode and dw_open:
+            msg += ' The AC mode is on and {self.messages.entry_point_check().lower()}.'
+      elif todays_low < -11:
+        if not self.climate.heat_mode:
+          msg += f' The heat mode is off and the over night low is {todays_low} degrees. Something is wrong!'
+        elif dw_open:
+          msg += f' The heat mode is on and the over night low is {todays_low} degrees and {self.messages.entry_point_check().lower()}.'
+        if self.climate.target_temperature < 20:
+          msg += f' The over night low is {todays_low} degrees and the thermostat temerature is {self.climate.target_temperature}.'
+      elif todays_low < 1:
+        if not self.climate.heat_mode:
+          msg += f' The heat mode is off and the over night low is {todays_low} degrees. You may want to turn on the heat.'
+        elif self.climate.heat_mode and dw_open:
+          msg = f' The heat mode is on and the over night low is {todays_low} degrees and {self.messages.entry_point_check().lower()}.'
+        elif dw_open:
+          msg += f' The windows or doors are open and the over night low is {todays_low} degrees.'
     else:
       msg += ' The HVAC is in manual control mode.'
+      if self.climate.pws_ready:
+        if self.climate.todays_low <= 0 and dw_open:
+          msg += f' The overnight low is {self.climate.todays_low} and {self.messages.entry_point_check().lower()}.'
+        elif self.climate.todays_low >= 17 and not master_open:
+          msg += f' The overnight low is {self.climate.todays_low} and the master windows are closed.'
+
 
     return self.utils.one_space(msg)
 
