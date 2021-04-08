@@ -65,19 +65,20 @@ motion_master:
       on_lights:
         - master_closet
       on_duration: 2*60
-    # upstairs_stairs:
-    #   aliases:
-    #     - upstairs stairs
-    #     - loft stairs
-    #     - loft_stairs
-    #     - study stiars
-    #     - study_stairs
-    #     - master_stairs
-    #   sensors:
-    #     - binary_sensor.dummy
-    #   on_lights:
-    #     - switch.upstairs_stair
-    #   on_duration: 5*60
+      
+    upstairs_stairs:
+      aliases:
+        - upstairs stairs
+        - loft stairs
+        - loft_stairs
+        - study stiars
+        - study_stairs
+        - master_stairs
+      sensors:
+        - binary_sensor.upstairs_stairs_pir_sensor
+      on_lights:
+        - switch.upstairs_stair
+      on_duration: 5*60
 
     main_bathroom:
       # log_level: INFO

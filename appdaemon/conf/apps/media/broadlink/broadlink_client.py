@@ -64,10 +64,8 @@ DEVICE_CODE_PATH = DEVICE_CODE_FOLDER + DEVICE_CODE_FILE
 class BroadlinkClient(BaseApp):
 
   def setup(self): 
-    # return
-    self.listen_state(self.test,'input_boolean.ad_testing_1')
+    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
 
-    self.debug_level = 'DEBUG'
     self.broadlinks = self.args["broadlinks"]     # Broadlink config yaml settings
     self.entities = {}                            # HASS entities
     self.broadlinkObjects = {}                    # Broadlink objects
@@ -307,7 +305,7 @@ class BroadlinkClient(BaseApp):
       data_packet = base64.b64decode(data_packet)
 
     try:
-      # self._logger.log(f'Sending broadlink command from {name} using protocol: {protocol}', level=self.debug_level)
+      # self._logger.log(f'Sending broadlink command from {name} using protocol: {protocol}')
       self.broadlinkObjects[name].auth()
       self.broadlinkObjects[name].send_data(data_packet)
       return True
@@ -361,7 +359,7 @@ class BroadlinkClient(BaseApp):
 
       lirc_code = [int(round(code / frequency)) for code in codes[4:]]
 
-      # self._logger.log(lirc_code, level=self.debug_level)
+      # self._logger.log(lirc_code)
       return lirc_code
 
 
@@ -405,4 +403,10 @@ class BroadlinkClient(BaseApp):
     self._logger.log(f'Testing Braodlink_client Module: ')
 
     # self._logger.log(f'objects: {self.broadlinkObjects}, data: {self.broadlinks}, entities: {self.entities}')
-    self.execute_command('living room', 'living room tv', 'On')
+
+    # self.execute_command('master', 'master tv', 'On/Off', repeats=0)
+    # self.execute_command('master', 'master tv', 'Vol-', repeats=4)
+
+    t = 'a b c'
+
+    self._logger.log(f"t: {t}, t_: {t.replace(' ', '_')}")

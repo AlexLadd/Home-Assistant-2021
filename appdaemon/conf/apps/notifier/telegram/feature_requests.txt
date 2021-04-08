@@ -98,3 +98,27 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
 2021-03-22, 22:27:12 Alex: add motion sensor and power switch to cat water bowl
 
 2021-03-23, 21:11:09 Stephanie: play 3 songs when wake up music plays
+
+2021-03-26, 07:46:49 Alex: if tv turned on and low light levels than turn lights on in living room?
+
+2021-03-28, 12:34:11 Alex: notify when raining and lots of rain. Notify when high winds at home.
+
+2021-03-28, 12:34:37 Alex: try YouTube music if spotify continues to fail to work
+
+2021-03-28, 12:37:54 Alex: add disable repeat message options for repeat messages like open doors
+
+2021-03-31, 17:37:04 Alex: try setting up raspberry pi with 433 rf locally similar to https://community.home-assistant.io/t/question-rtl-433-acurite-weather-station-and-ha/6742
+
+2021-04-02, 21:34:22 Alex: use waze or similar to use traffic cams and maps to send images when awake in morning during work week when enabled
+
+2021-04-02, 21:34:41 Alex: add enable boolean to all app by default?
+
+2021-04-02, 21:38:51 Alex: find way to log low level appdaemon errors to telegram
+
+2021-04-02, 21:40:36 Alex: find way to track main automation system components like unifi controller, docker, portainer, mqtt, esphome, grafana, etc. Make nice display for these.
+
+2021-04-03, 11:55:12 Stephanie: put a sensor on the basement freezer door
+
+2021-04-03, 19:32:06 Stephanie: make transition between day and night tv light settings slower
+
+2021-04-02, 21:38:51 Alex: Add basement freeze door check to last person leaving check and asleep check (should be done periodically when open too long but this is a fail safe)

@@ -121,11 +121,14 @@ class SpotifyEngine(BaseApp):
     # self.play_random_steph('master', speaker_override=True)
     # self._logger.log(f'Playing music using {song_dict}')
 
-    song_data = {'album':'spotify:album:1ohdh4vzVUXhtaE04cHvle', 'random_start':'True'} # Pentatonix  
-    song_data = {'track':"How Far I'll Go", 'multiple':'on', 'random_start':True, 'similar':True} 
-    song_data = {'track':"How Far I'll Go"} 
-    song = self.sc.get_recommendation(song_data)
-    self._logger.log(f'Attempting to playing "{song}" derived from {song_data}.')
+    song_data = {}
+    # song_data = {'album':'spotify:album:1ohdh4vzVUXhtaE04cHvle', 'random_start':'True'} # Pentatonix  
+    # song_data = {'track':"How Far I'll Go", 'multiple':'on', 'random_start':True, 'similar':True} 
+    # song_data = {'track':"How Far I'll Go"} 
+    # song = self.sc.get_recommendation(song_data)
+
+    song = 'spotify:track:2374M0fQpWi3dLnB54qaLX'
+    self._logger.log(f'Attempting to play "{song}" derived from {song_data}.')
     self.play_song(song, 'master', speaker_override=True)
 
 

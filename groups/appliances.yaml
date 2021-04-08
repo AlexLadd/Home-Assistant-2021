@@ -1,0 +1,9 @@
+
+# Appliances Master
+
+appliance_monitoring_sensors_master:
+  name: "Appliance Monitoring Sensors"
+  entities:
+    - sensor.dishwasher_run_time
+    - sensor.dryer_run_time
+    - sensor.washing_machine_run_time

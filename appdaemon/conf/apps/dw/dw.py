@@ -20,12 +20,6 @@ Last Updated: Jan 23, 2021
 
 from base_app import BaseApp
 import datetime
-from const import GUEST_MODE_BOOLEAN
-from utils import last_changed, valid_input
-
-# TODO: 
-
-LOG_CUTOFF = 'DEBUG'
 
 DOORS_MASTER = 'group.door_sensors_master'
 WINDOWS_MASTER = 'group.window_sensors_master'
@@ -33,6 +27,8 @@ WINDOWS_MASTER = 'group.window_sensors_master'
 FRONT_DOOR_SENSOR = 'binary_sensor.front_door_window_sensor'
 KITCHEN_DOOR_SENSOR = 'binary_sensor.kitchen_door_window_sensor'
 STUDY_DOOR_SENSOR = 'binary_sensor.study_outside_door_sensor'
+MASTER_DOOR_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
+BASEMENT_DOOR_SENSOR = 'binary_sensor.basement_patio_door_sensor'
 
 FRONT_DOOR_RECENTLY_OPEN_TIME = 10*60
 KITCHEN_DOOR_RECENTLY_OPEN_TIME = 10*60
@@ -59,6 +55,9 @@ class DoorsWindows(BaseApp):
     self.listen_state(self._kitchen_door_opened_cb, KITCHEN_DOOR_SENSOR, old='off', new='on')
     self.listen_state(self._door_open_notify, KITCHEN_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME)
     self.listen_state(self._door_open_notify, FRONT_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME)
+    self.listen_state(self._door_open_notify, STUDY_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60)
+    self.listen_state(self._door_open_notify, MASTER_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60)
+    self.listen_state(self._door_open_notify, BASEMENT_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60)
 
     
   @property
@@ -85,17 +84,31 @@ class DoorsWindows(BaseApp):
     else:
       return door
 
+  
+  def door_open_recently(self, door, time_limit=None):
+    """ 
+    Check if given door has been open within the time_limit
+    
+    param time_limit: Number of second to check if the door has been open. Default if FRONT_DOOR_RECENTLY_OPEN_TIME 
+    """
+    cutoff = time_limit if time_limit else FRONT_DOOR_RECENTLY_OPEN_TIME
+    return bool(self.is_open(door) or self.utils.last_changed(self, door) < cutoff)
+
 
   def front_door_recently_opened(self, time_limit=None):
-    """ If the F.D. is open or was recently opened/closed than return True """
-    cutoff = time_limit if time_limit else FRONT_DOOR_RECENTLY_OPEN_TIME
-    return bool(self.is_open(FRONT_DOOR_SENSOR) or last_changed(self, FRONT_DOOR_SENSOR) < cutoff)
-
+    return self.door_open_recently(FRONT_DOOR_SENSOR, time_limit) 
 
   def kitchen_door_recently_opened(self, time_limit=None):
-    """ If the F.D. is open or was recently opened/closed than return True """
-    cutoff = time_limit if time_limit else KITCHEN_DOOR_RECENTLY_OPEN_TIME
-    return bool(self.is_open(KITCHEN_DOOR_SENSOR) or last_changed(self, KITCHEN_DOOR_SENSOR) < cutoff)
+    return self.door_open_recently(KITCHEN_DOOR_SENSOR, time_limit) 
+
+  def study_door_recently_opened(self, time_limit=None):
+    return self.door_open_recently(STUDY_DOOR_SENSOR, time_limit) 
+
+  def master_door_recently_opened(self, time_limit=None):
+    return self.door_open_recently(MASTER_DOOR_SENSOR, time_limit) 
+    
+  def basement_door_recently_opened(self, time_limit=None):
+    return self.door_open_recently(BASEMENT_DOOR_SENSOR, time_limit) 
 
 
   def is_open(self, entity=None, min_open_time=None):
@@ -110,8 +123,8 @@ class DoorsWindows(BaseApp):
     for e in entity:
       if self.get_state(e) == 'on':
         if min_open_time is not None:
-          # self._logger.log(f'Entity: {e}, last_changed: {last_changed(self, e) }')
-          if last_changed(self, e) > min_open_time:
+          # self._logger.log(f'Entity: {e}, last_changed: {self.utils.last_changed(self, e) }')
+          if self.utils.last_changed(self, e) > min_open_time:
             return True
         else:
           return True
@@ -155,25 +168,28 @@ class DoorsWindows(BaseApp):
 
 
   def _door_open_notify(self, entity, attribute, old, new, kwargs):
-    self._door_open_notify_timer( { 'door': entity } )
+    """ Callback used to notify when a door has been opened for too long """
+    repeat_time = kwargs.get('repeat_time', DOOR_OPEN_REPEAT_NOTIFY_TIME)
+    self._door_open_notify_timer( { 'door': entity, 'repeat_time': repeat_time } )
 
 
   def _door_open_notify_timer(self, kwargs):
     door = kwargs.get('door', None)
+    repeat_time = kwargs.get('repeat_time', DOOR_OPEN_REPEAT_NOTIFY_TIME)
     if not door:
       self._logger.log(f'Failed to get door, kwargs: {kwargs}')
       return
 
     if self.is_open(door):
       time = int(self.utils.last_changed(self, door)/60)
-      msg = f'The "{self.friendly_name(door)}" ({door}) door has been open for "{time}" minutes.'
-      self.notifier.telegram_notify(msg, ['status', 'alarm'], NOTIFY_TITLE)
-      self._logger.log(msg, level='WARNING')
+      log_msg = f'The "{self.friendly_name(door)}" ({door}) door has been open for "{time}" minutes.'
+      self._logger.log(log_msg, level='WARNING')
       
-      tts_msg = f'The {self.friendly_name(door)}door has been open for {time} minutes.'
-      self.notifier.tts_notify(tts_msg, speaker_override=True)
+      notify_msg = f"The {self.friendly_name(door).lower().replace('sensor', '')} door has been open for {time} minutes."
+      self.notifier.telegram_notify(notify_msg, ['status', 'alarm'], NOTIFY_TITLE)
+      self.notifier.tts_notify(notify_msg, speaker_override=True)
       
-      self.run_in(self._door_open_notify_timer, DOOR_OPEN_REPEAT_NOTIFY_TIME, door=door)
+      self.run_in(self._door_open_notify_timer, repeat_time, door=door, repeat_time=repeat_time)
     else:
       time = int(self.utils.last_changed(self, door)/60)
       msg = f'The "{self.friendly_name(door)}" ({door}) door has been closed for "{time}" minutes.'
@@ -205,11 +221,11 @@ class DoorsWindows(BaseApp):
       self._logger.log(f'Friendly name: {self.friendly_name(e)}')
 
     res = self.front_door_recently_opened()
-    self._logger.log(f'Front door just opened: {res} (time_limit: {FRONT_DOOR_RECENTLY_OPEN_TIME}). Last changed: {last_changed(self, FRONT_DOOR_SENSOR)/60} minutes.')
+    self._logger.log(f'Front door just opened: {res} (time_limit: {FRONT_DOOR_RECENTLY_OPEN_TIME}). Last changed: {self.utils.last_changed(self, FRONT_DOOR_SENSOR)/60} minutes.')
     res = self.kitchen_door_recently_opened()
-    self._logger.log(f'Kitchen door just opened: {res} (time_limit: {KITCHEN_DOOR_RECENTLY_OPEN_TIME}) Last changed: {last_changed(self, KITCHEN_DOOR_SENSOR)/60} minutes.')
+    self._logger.log(f'Kitchen door just opened: {res} (time_limit: {KITCHEN_DOOR_RECENTLY_OPEN_TIME}) Last changed: {self.utils.last_changed(self, KITCHEN_DOOR_SENSOR)/60} minutes.')
     res = self.front_door_recently_opened(10000000000)
-    self._logger.log(f'Front door just opened: {res} (time_limit: 10000000000). Last changed: {last_changed(self, FRONT_DOOR_SENSOR)/60} minutes.')
+    self._logger.log(f'Front door just opened: {res} (time_limit: 10000000000). Last changed: {self.utils.last_changed(self, FRONT_DOOR_SENSOR)/60} minutes.')
     res = self.kitchen_door_recently_opened(1000000000)
-    self._logger.log(f'Kitchen door just opened: {res} (time_limit: 1000000000). Last changed: {last_changed(self, KITCHEN_DOOR_SENSOR)/60} minutes.')
+    self._logger.log(f'Kitchen door just opened: {res} (time_limit: 1000000000). Last changed: {self.utils.last_changed(self, KITCHEN_DOOR_SENSOR)/60} minutes.')
   

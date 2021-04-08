@@ -46,6 +46,7 @@ speakers:
     kitchen:
       aliases:
         - kitchen_speaker
+        - kitchen speaker
       entity_id: media_player.kitchen_speaker
       is_group: False
       default_volume: 0.30

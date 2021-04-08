@@ -185,7 +185,13 @@ lights:
         sleep_brightness: 25
 
     upstairs_stairway:
+      aliases:
+        - upstairs_stairs
+        - office_stairway
+        - office_stairs
       entity_id: switch.upstairs_stair
+      properties:
+        use_dark_mode: 'input_boolean.dark_mode'
     
     small_bedroom:
       # log_level: INFO

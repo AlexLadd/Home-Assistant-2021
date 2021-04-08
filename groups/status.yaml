@@ -31,3 +31,13 @@ wifi_sensors_master:
     - sensor.sonoff_rf_bridge_4_wifi_signal
     - sensor.sonoff_s31_washing_machine_wifi_signal
     - sensor.nextion_fireplace_wallplate_wifi_signal
+
+
+# Misc Household Status Sensors
+
+household_status_master:
+  name: "Household Status Sensors"
+  entities:
+    - sun.sun
+    - sensor.holiday
+    - sensor.season

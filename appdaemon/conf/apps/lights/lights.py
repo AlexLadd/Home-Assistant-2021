@@ -8,6 +8,9 @@ Various options: (TODO)
   - scheduled
   - transitional (ramping)
   - 
+
+CHANGE_LOG:
+  - April 6 - line 282 removed need to redundencly add aliases like study_light & study light.
 """
 
 
@@ -278,6 +281,8 @@ class LightController(BaseApp):
       if light.lower() in lt[CONF_ALIASES]:
         return lt[CONF_ENTITY_ID]
       if light.lower() == lt[CONF_SWITCH_ENTITY_ID]:
+        return lt[CONF_ENTITY_ID]
+      if light.lower().replace(' ', '_') in lt[CONF_ALIASES]:
         return lt[CONF_ENTITY_ID]
     return light
 

@@ -23,7 +23,7 @@ FIREPLACE_TV_EVENT = 'esphome.living_room_tv'
 class LivingRoomFireplace(BaseApp):
 
   def setup(self):
-    self.listen_state(self.test, 'input_boolean.ad_testing_1')
+    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
 
     self.lights = self.get_app('lights')
     self.living_room_tv = self.get_app('living_room_tv')

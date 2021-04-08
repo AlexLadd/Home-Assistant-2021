@@ -81,3 +81,17 @@
   -> FIXED - Error in security module turn_off_emergency_mode() line 248 that was fixed
 
 2021-03-23, 21:10:50 Stephanie: music did not play when I got home
+
+2021-03-28, 12:32:40 Alex: speakers use_group does not change appropriate speakers to the corresponding group
+
+2021-03-28, 12:33:36 Alex: precip chance was different in the message than it was in the pws sensor
+
+2021-04-01, 05:41:31 Stephanie: living room fan and lamps were on this morning but they should have turned off when we went to sleep
+
+2021-04-02, 21:39:22 Stephanie: master closet light via  motion not disabled when both asleep
+
+2021-04-04, 11:47:14 Stephanie: alex and Steph person leaving home are off by almost 10 minutes
+
+2021-04-04, 11:49:30 Stephanie: when last person leaves home, call arm alarm in the security app before calling the security monitoring loop to prevent the initial warning message being sent
+
+2021-04-08, 12:16:29 Stephanie: the watching tv lights are on while it's light outside

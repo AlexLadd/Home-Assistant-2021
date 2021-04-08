@@ -16,6 +16,7 @@ motion_sensor_master:
     - binary_sensor.kitchen_closet_pir_sensor
     - binary_sensor.hue_motion_kitchen_motion
     - binary_sensor.front_door_inside_pir_sensor
+    - binary_sensor.upstairs_stairs_pir_sensor
     - binary_sensor.master_closet_pir_sensor
     - binary_sensor.laundry_pir_sensor
     - binary_sensor.hue_motion_study_2_motion

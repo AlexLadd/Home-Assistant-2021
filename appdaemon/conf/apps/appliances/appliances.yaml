@@ -1,4 +1,13 @@
-  
+
+
+basement_freezer:
+  module: basement_freezer
+  class: BasementFreezer
+  dependencies:
+    - custom_logger
+    - notifier
+    - presence
+
 
 washer:
   module: washer

@@ -10,7 +10,7 @@ from base_app import BaseApp
 class Notifier(BaseApp):
 
   def setup(self):
-    self.listen_state(self.test,'input_boolean.ad_testing_3')
+    # self.listen_state(self.test,'input_boolean.ad_testing_3')
 
     self.telegram = self.get_app('telegram')
     self.tts = self.get_app('tts')

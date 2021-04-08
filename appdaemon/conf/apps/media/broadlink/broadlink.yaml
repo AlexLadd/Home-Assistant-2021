@@ -5,7 +5,7 @@ broadlink_client:
   dependencies:
     - custom_logger
   # local_ip: 192.168.0.74
-  logging_cutoff: WARNING
+  logging_cutoff: DEBUG
   broadlinks:
     living_room: # IP: 192.168.0.174
       mac: c8:f7:42:f6:0c:36

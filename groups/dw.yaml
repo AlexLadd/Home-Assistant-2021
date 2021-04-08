@@ -36,5 +36,6 @@ window_sensors_master:
     - binary_sensor.study_window_sensor_l2
     - binary_sensor.study_window_sensor_r1
     - binary_sensor.study_window_sensor_r2
+    - binary_sensor.basement_bedroom_window_1_sensor
 
 
