@@ -5,8 +5,10 @@
         ## Pan & Tilt Options
         ##########################################################
 
-- platform: foscam
-  name: Carport
-  ip: !secret carport_camera_ip
-  username: !secret carport_camera_username
-  password: !secret carport_camera_password
+# THIS WAS AUTOMATICALLY ADDED BY HA IN A NEWER VERSION AND THIS IS NO LONGER NEEDED
+
+# - platform: foscam
+#   name: Carport
+#   ip: !secret carport_camera_ip
+#   username: !secret carport_camera_username
+#   password: !secret carport_camera_password

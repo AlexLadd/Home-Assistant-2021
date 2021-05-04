@@ -89,9 +89,17 @@
 2021-04-01, 05:41:31 Stephanie: living room fan and lamps were on this morning but they should have turned off when we went to sleep
 
 2021-04-02, 21:39:22 Stephanie: master closet light via  motion not disabled when both asleep
+  -> FIXED - light will NOT turn on when someone is asleep
 
 2021-04-04, 11:47:14 Stephanie: alex and Steph person leaving home are off by almost 10 minutes
 
 2021-04-04, 11:49:30 Stephanie: when last person leaves home, call arm alarm in the security app before calling the security monitoring loop to prevent the initial warning message being sent
 
 2021-04-08, 12:16:29 Stephanie: the watching tv lights are on while it's light outside
+
+2021-04-16, 17:40:31 Stephanie: car port camera isn't working likely because the IP address has changed since setting it up
+  -> FIXED - changed config IP and made it static in unifi controller
+
+2021-04-18, 21:22:52 Alex: sonoff rf bridges are only working periodically. Appears to be the same issue as before... when it has too many sensors it stops working. This is only a hypothesis. Try using one device such as an esp32 or pi
+
+

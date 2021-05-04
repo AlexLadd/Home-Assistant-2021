@@ -14,6 +14,8 @@ import inspect
 import operator
 import voluptuous as vol
 import utils_validation
+import threading
+import yaml
 
 """
 Yaml Parameters (possibilities):
@@ -32,6 +34,7 @@ TODO:
   - Add in functionality to check app dependencies and set them to given app so the app doesnt need to do it individually
 """
 
+INPUT_BOOLEAN_HA_PATH = 'input_booleans/appdaemon_automatic_booleans.yaml'
 # Toggle for debugging since this app cannot use the built in logger to manage this
 DEBUGGING = False
 
@@ -82,17 +85,14 @@ class BaseApp(hass.Hass):
     # Register constraint checks for enable/disable state checks
     self.register_constraint("constraint_app_enabled")
 
+    # Locks to prevent concurency issues for IO operations (creating HA entities by writing to files)
+    self._create_input_boolean_lock = threading.Lock()
+    self._run_in_input_booleans = None
+
     # Call the child class version of initialize
     if hasattr(self, 'setup'):
       self.setup()
 
-    # I THINK THIS CAN BE REMOVED SINCE WE ARE CHANGING THE GLOBAL SCHEMA (NOT TESTED YET!!!!!!!)
-    # Process secondary app config (This must be done after setup....)
-    # try:
-    #   self.cfg = self.APP_SCHEMA(self.args)
-    # except vol.Invalid as err:
-    #   # self._logger.log(f'Secondary app configuration error: {err}', level='ERROR')
-    #   raise vol.Invalid(f"Secondary app  configuration error: {err}")
 
 
   @property
@@ -180,4 +180,44 @@ class BaseApp(hass.Hass):
 
     return True
 
+    
+  def create_input_boolean(self, boolean_id, name=None, icon=None, file_path=INPUT_BOOLEAN_HA_PATH):
+    """ Create an HA input boolean by saving the config to a file """
+    if not boolean_id.startswith('input_boolean.'):
+      boolean_id = 'input_boolean.' + boolean_id
+    # if not boolean_id.startswith('_tracker'):
+    #   boolean_id = boolean_id + '_tracker'
+
+    if self.entity_exists(boolean_id):
+      self._logger.log(f'{boolean_id} already exists so one will not be created using create_input_boolean', level='INFO')
+      return
+
+    if name is None:
+      name = boolean_id.replace('input_boolean.', '').replace('_', ' ').title()
+    options = {'name': name}
+    if icon is not None:
+      options['icon'] = icon
+
+    # Create config using unique boolean ID
+    config = {boolean_id.replace('input_boolean.', ''): options}
+    yaml.Dumper.ignore_aliases = lambda *args : True 
+    yaml_config = yaml.dump(config, default_flow_style=False, sort_keys=False)
+
+    with self._create_input_boolean_lock:
+      with open(self.utils.ha_path(file_path), 'a') as f:
+        f.write(str(yaml_config))
+        f.write('\n')
+      # Make sure this is locked as well to prevent missing the reload
+      if self._run_in_input_booleans:
+        self.cancel_timer(self._run_in_input_booleans)
+        self._run_in_input_booleans = None
+      self._run_in_input_booleans = self.run_in(self._reload_input_booleans, 1)
+
+    self._logger.log(f'Saved input_boolean config to {file_path}: "{yaml_config}"', level='INFO')
+
+
+  def _reload_input_booleans(self, kwargs):
+    self._logger.log(f'Reloading input_booleans now')
+    self.call_service('input_boolean/reload')
+    #TODO: Add in a check for correct reload
     

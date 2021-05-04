@@ -27,8 +27,10 @@ WINDOWS_MASTER = 'group.window_sensors_master'
 FRONT_DOOR_SENSOR = 'binary_sensor.front_door_window_sensor'
 KITCHEN_DOOR_SENSOR = 'binary_sensor.kitchen_door_window_sensor'
 STUDY_DOOR_SENSOR = 'binary_sensor.study_outside_door_sensor'
-MASTER_DOOR_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
 BASEMENT_DOOR_SENSOR = 'binary_sensor.basement_patio_door_sensor'
+
+MASTER_DOOR_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
+MASTER_DOOR_SCREEN_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
 
 FRONT_DOOR_RECENTLY_OPEN_TIME = 10*60
 KITCHEN_DOOR_RECENTLY_OPEN_TIME = 10*60
@@ -170,22 +172,31 @@ class DoorsWindows(BaseApp):
   def _door_open_notify(self, entity, attribute, old, new, kwargs):
     """ Callback used to notify when a door has been opened for too long """
     repeat_time = kwargs.get('repeat_time', DOOR_OPEN_REPEAT_NOTIFY_TIME)
-    self._door_open_notify_timer( { 'door': entity, 'repeat_time': repeat_time } )
+    screen_sensor = kwargs.get('screen_sensor', None)
+    self._door_open_notify_timer( { 'door': entity, 'repeat_time': repeat_time, 'screen_sensor': screen_sensor } )
 
 
   def _door_open_notify_timer(self, kwargs):
     door = kwargs.get('door', None)
     repeat_time = kwargs.get('repeat_time', DOOR_OPEN_REPEAT_NOTIFY_TIME)
+    screen_sensor = kwargs.get('screen_sensor', None)
+
     if not door:
       self._logger.log(f'Failed to get door, kwargs: {kwargs}')
       return
 
-    if self.is_open(door):
+    if self.is_open(door):      
+      if screen_sensor is not None and not self.is_open(screen_sensor):
+        msg = f'The screen door sensor ({screen_sensor}) is closed while the {self.friendly_name(door)} door is open. No notifications will be sent.'
+        self._logger.log(msg, level='INFO')
+        return
+
       time = int(self.utils.last_changed(self, door)/60)
       log_msg = f'The "{self.friendly_name(door)}" ({door}) door has been open for "{time}" minutes.'
       self._logger.log(log_msg, level='WARNING')
-      
-      notify_msg = f"The {self.friendly_name(door).lower().replace('sensor', '')} door has been open for {time} minutes."
+
+
+      notify_msg = f"The {self.friendly_name(door).lower().replace('sensor', '').replace('door', '')} door has been open for {time} minutes."
       self.notifier.telegram_notify(notify_msg, ['status', 'alarm'], NOTIFY_TITLE)
       self.notifier.tts_notify(notify_msg, speaker_override=True)
       

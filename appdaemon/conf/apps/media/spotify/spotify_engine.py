@@ -16,7 +16,7 @@ SPOTIFY_MEDIA_PLAYER = 'media_player.spotify_ha'
 class SpotifyEngine(BaseApp):
 
   def setup(self):
-    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
+    self.listen_state(self.test, 'input_boolean.ad_testing_1')
 
     self.mp = self.get_app('speakers')
     self.sc = self.get_app('spotify_client')
@@ -109,6 +109,26 @@ class SpotifyEngine(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing spotify_engine Module: ')
+
+    device_name = 'Master Bedrdoom Speaker'
+    uri = 'spotify:album:1ohdh4vzVUXhtaE04cHvle'
+    rng_start = True
+
+    self.call_service('spotcast/start', device_name=device_name, uri=uri, random_song=rng_start)
+
+    # services = self.list_services()
+    # self._logger.log(f'Services: {services}')
+    # self._logger.log(f'Spotcast search: {"spotcast" in services}')
+
+    # for s in services:
+    #   if 'spot' in s.get('domain', ''):
+    #     self._logger.log(f'Found spot service: {s}')
+    #     break
+    #   elif 'start' in s.get('service', ''):
+    #     self._logger.log(f'Found a "start" service: {s}')
+    #   else:
+    #     self._logger.log(f'Did not find anything: {s}')
+
     # song_dict = {
     #   'device':'office', 
     #   'artist':'blink 182', 
@@ -121,15 +141,15 @@ class SpotifyEngine(BaseApp):
     # self.play_random_steph('master', speaker_override=True)
     # self._logger.log(f'Playing music using {song_dict}')
 
-    song_data = {}
+    # song_data = {}
     # song_data = {'album':'spotify:album:1ohdh4vzVUXhtaE04cHvle', 'random_start':'True'} # Pentatonix  
     # song_data = {'track':"How Far I'll Go", 'multiple':'on', 'random_start':True, 'similar':True} 
     # song_data = {'track':"How Far I'll Go"} 
     # song = self.sc.get_recommendation(song_data)
 
-    song = 'spotify:track:2374M0fQpWi3dLnB54qaLX'
-    self._logger.log(f'Attempting to play "{song}" derived from {song_data}.')
-    self.play_song(song, 'master', speaker_override=True)
+    # song = 'spotify:track:2374M0fQpWi3dLnB54qaLX'
+    # self._logger.log(f'Attempting to play "{song}" derived from {song_data}.')
+    # self.play_song(song, 'master', speaker_override=True)
 
 
   def terminate(self):

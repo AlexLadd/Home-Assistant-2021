@@ -122,3 +122,16 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
 2021-04-03, 19:32:06 Stephanie: make transition between day and night tv light settings slower
 
 2021-04-02, 21:38:51 Alex: Add basement freeze door check to last person leaving check and asleep check (should be done periodically when open too long but this is a fail safe)
+
+2021-04-09, 22:39:42 Stephanie: on good night message, say who is going to bed. 'Pet mode is on. Good night'
+
+2021-04-10, 22:34:16 Stephanie: add a feature to the light module that allows lights to be active when asleep or not. Turn this on means the light will not be controlled by the system at night. 
+OR
+Do the same thing using pet mode.
+
+2021-04-18, 15:02:56 Stephanie: when house enters vacation mode, notify us if there are any open entry points
+
+2021-04-18, 21:19:42 Alex: prompt for a smoke detector test periodically and guide user through the test and send the output as it is completed
+
+Alex: Add temperature check to door open notify when using a screen_door_sensor
+Alex Move DW options to yaml config and validate? Door sensor, Screen door sensor, temperature cutoff for screen door, etc

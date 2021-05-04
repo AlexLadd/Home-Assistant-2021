@@ -34,6 +34,7 @@ CONF_START_KEY = 'lights'
 
 CONF_LOG_LEVEL = 'log_level'
 CONF_LIGHT_DISABLE_STATES = 'light_disable_states'
+CONF_LIGHT_ENABLED_BOOLEAN_TRACKER = 'enabled_boolean_tracker'
 CONF_TAKE_OVER_CONTROL = 'take_over_control'          # When True, the light will be disable when manually turned on (or adjusted [NOT MIMPLEMENTED YET!!!])
 CONF_DETECT_NON_HA_CHANGES = 'detect_non_ha_changes' # Currently does nothing
 
@@ -157,6 +158,7 @@ LIGHT_SCHEMA = {
 
           vol.Optional(CONF_LOG_LEVEL, default=CONF_DEFAULT_LOG_LEVEL): str,
           vol.Optional(CONF_LIGHT_DISABLE_STATES, default=[]): utils_validation.ensure_constraint_list,
+          vol.Optional(CONF_LIGHT_ENABLED_BOOLEAN_TRACKER, default=None): utils_validation.entity_id,
           vol.Optional(CONF_TAKE_OVER_CONTROL, default=True): bool,
           vol.Optional(CONF_DETECT_NON_HA_CHANGES, default=True): bool,
 
@@ -225,6 +227,14 @@ class LightController(BaseApp):
       # Set sensor friendly name to room if not declared in config
       if CONF_FRIENDLY_NAME not in self._light_data[eid]:
         self._light_data[eid][CONF_FRIENDLY_NAME] = name.replace('_', ' ').title()
+
+      # Setup default enabled boolean tracker if not specified
+      if CONF_LIGHT_ENABLED_BOOLEAN_TRACKER not in self._light_data[eid] or self._light_data[eid][CONF_LIGHT_ENABLED_BOOLEAN_TRACKER] is None:
+        tracker_boolean = 'input_boolean.' + eid.replace('.', '_') + '_tracker'
+        self._light_data[eid][CONF_LIGHT_ENABLED_BOOLEAN_TRACKER] = tracker_boolean
+      if not self.entity_exists(self._light_data[eid][CONF_LIGHT_ENABLED_BOOLEAN_TRACKER]):
+        self.create_input_boolean(tracker_boolean)
+        # self.turn_on(tracker_boolean) # Do not use set_state because it will create the boolean in the wrong way if its not created yet MAYBE??????
 
       # Add if colour & dimable are available for this light. Saves checking continuously later
       self._light_data[eid][CONF_IS_COLOUR] = self._is_colour(data[CONF_ENTITY_ID])
@@ -548,7 +558,11 @@ class Light:
 
 
   def _should_adjust(self, override, turning_on):
-    """ Whether this light should be adjusted or not. Override - will bypass most conditions """
+    """ Whether this light should be adjusted or not. Override - will bypass everthing except for manually disabling """
+    if not self.light_enabled:
+      self._logger.log(f'{self.name} light has manual enabled boolean set to OFF.', level=self.log_level)
+      return False
+
     if isinstance(override, bool) and override:
       self._logger.log(f'{self.name} was called with override set to: {override} (turning_on: {turning_on}).', level=self.log_level)
       return True
@@ -929,7 +943,9 @@ class Light:
         msg = 'should be on but is off'
       elif not self._should_be_on and self._is_on:
         msg = 'should be off but is on'
-      self._logger.log(f'The {self.friendly_name.lower()} tried {self._check_count} time to correct its state (max {MAX_LIGHT_CALLBACK_CHECKS}). The light {msg}.', level='WARNING')
+      else:
+        msg = f'confused... _should_be_on: {self._should_be_on} & _is_on: {self._is_on}'
+      self._logger.log(f'The {self.friendly_name.lower()} tried {self._check_count} time to correct its state (max {MAX_LIGHT_CALLBACK_CHECKS}). The light {msg}.', level='WARNING', notify=False)
       self._check_count = 0
       self._next_check_time = 1
       return
@@ -988,6 +1004,23 @@ class Light:
   def light_disable_states(self):
     """ List of constraints that disable this light """
     return self.attrs[CONF_LIGHT_DISABLE_STATES]
+
+  @property
+  def enabled_state_boolean_tracker(self):
+    """ Return light enabled state boolean tracker """
+    return self.attrs[CONF_LIGHT_ENABLED_BOOLEAN_TRACKER]
+
+  @property
+  def light_enabled(self):
+    """ Check if light is enabled using the manual HA boolean """
+    try:
+      if not self.app.entity_exists(self.enabled_state_boolean_tracker):
+        self._logger.log(f'{self.name} has not tracker boolean', self.log_level)
+        return True
+      return bool(self.app.get_state(self.enabled_state_boolean_tracker) == 'on')
+    except Exception as e:
+      self._logger.log(f'Error reading {self.name} enable state boolean: {self.enabled_state_boolean_tracker}', level='ERROR')
+      return True
 
   @property
   def detect_non_ha_changes(self):
@@ -1106,7 +1139,7 @@ class Light:
     """ The average light level is above the default cutoff value """
     try:
       return bool(float(self.app.get_state(self.use_lux)) > self.lux_threshold)
-    except TypeError:
+    except (TypeError, ValueError):
       return False
 
   @property

@@ -44,7 +44,7 @@ lights:
         use_holidays: False
 
       properties:
-        use_dark_mode: 'input_boolean.dark_mode'
+        # use_dark_mode: 'input_boolean.dark_mode'
         use_lux: 'sensor.wupws_solarradiation'
         lux_threshold: 35 # Readings above threshold will prevent light from turning on
 
@@ -105,7 +105,7 @@ lights:
       #   use_random_colours: True
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
-        sleep_condition: input_boolean.everyone_awake, ==, off # Considered alseep when this is met
+        sleep_condition: input_boolean.everyone_awake, ==, off # Someone asleep
         sleep_brightness: 0
     master_closet:
       aliases:
@@ -113,6 +113,8 @@ lights:
         - master bedroom closet
         - master_bedroom_closet
       entity_id: switch.master_closet
+      light_disable_states:
+        - input_boolean.everyone_awake, ==, off # Someone asleep
     master_bedroom_alex:
       # log_level: INFO
       aliases:

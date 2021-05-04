@@ -1,0 +1,90 @@
+light_study_ceiling_light_tracker:
+  name: Light Study Ceiling Light Tracker
+
+light_study_ceiling_light_tracker:
+  name: Light Study Ceiling Light Tracker
+
+light_study_ceiling_light_tracker:
+  name: Light Study Ceiling Light Tracker
+
+light_master_bedroom_tracker:
+  name: Light Master Bedroom Tracker
+
+light_master_fan_light_tracker:
+  name: Light Master Fan Light Tracker
+
+switch_master_closet_tracker:
+  name: Switch Master Closet Tracker
+
+light_alex_master_lamp_tracker:
+  name: Light Alex Master Lamp Tracker
+
+light_steph_master_lamp_tracker:
+  name: Light Steph Master Lamp Tracker
+
+light_master_bathroom_ceiling_tracker:
+  name: Light Master Bathroom Ceiling Tracker
+
+light_master_bathroom_tub_tracker:
+  name: Light Master Bathroom Tub Tracker
+
+switch_upstairs_stair_tracker:
+  name: Switch Upstairs Stair Tracker
+
+switch_small_bedroom_tracker:
+  name: Switch Small Bedroom Tracker
+
+switch_main_hallway_tracker:
+  name: Switch Main Hallway Tracker
+
+switch_main_bathroom_tracker:
+  name: Switch Main Bathroom Tracker
+
+switch_front_door_tracker:
+  name: Switch Front Door Tracker
+
+light_living_room_tracker:
+  name: Light Living Room Tracker
+
+light_living_room_fan_light_tracker:
+  name: Light Living Room Fan Light Tracker
+
+light_living_room_lamps_tracker:
+  name: Light Living Room Lamps Tracker
+
+light_living_room_tv_tracker:
+  name: Light Living Room Tv Tracker
+
+light_dining_room_tracker:
+  name: Light Dining Room Tracker
+
+light_kitchen_ceiling_tracker:
+  name: Light Kitchen Ceiling Tracker
+
+switch_kitchen_door_tracker:
+  name: Switch Kitchen Door Tracker
+
+switch_kitchen_closet_tracker:
+  name: Switch Kitchen Closet Tracker
+
+switch_basement_stairs_tracker:
+  name: Switch Basement Stairs Tracker
+
+light_laundry_room_tracker:
+  name: Light Laundry Room Tracker
+
+light_pantry_tracker:
+  name: Light Pantry Tracker
+
+light_basement_storage_tracker:
+  name: Light Basement Storage Tracker
+
+switch_outside_front_tracker:
+  name: Switch Outside Front Tracker
+
+switch_front_door_outside_tracker:
+  name: Switch Front Door Outside Tracker
+
+switch_outdoor_soffit_tracker:
+  name: Switch Outdoor Soffit Tracker
+

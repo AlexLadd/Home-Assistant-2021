@@ -28,8 +28,9 @@ spotify_client:
     kitchen : Kitchen Speaker
     office : Office Speaker
     master : Master Bedroom Speaker
+    master_bathroom : Master Bathroom Speaker
     living room : Family Room Speaker
-    basement : Basement Speaker
+    basement : Basement Storage Speaker
     upstairs : Upstairs Speakers
     everywhere : All Speakers
     no bedrooms : All Except Bedrooms
