@@ -27,13 +27,13 @@ class LivingRoomFireplace(BaseApp):
 
     self.lights = self.get_app('lights')
     self.living_room_tv = self.get_app('living_room_tv')
+    self.climate = self.get_app('climate')
 
     self.listen_event(self._fireplace_event_cb, FIREPLACE_FIREPLACE_EVENT)
     self.listen_state(self._fireplace_state_cb, LIVING_ROOM_FIREPLACE_RELAY)
     self.listen_event(self._lights_event_cb, FIREPLACE_LIGHT_EVENT)
     self.listen_event(self._tv_event_cb, FIREPLACE_TV_EVENT)
 
-    self.climate = self.get_app('climate')
 
 
   @property
@@ -43,6 +43,22 @@ class LivingRoomFireplace(BaseApp):
   @property
   def is_on(self):
     return bool(self.state == 'on')
+
+  def set_fireplace_state(self, fireplace_entity, new_state):
+    """ Set state of a given fireplace to on/off """
+    if new_state != self.state:
+      self.set_state(fireplace_entity, state=new_state)
+      self._logger.log(f'Setting {fireplace_entity} to "{new_state}"')
+    else:
+      self._logger.log(f'{fireplace_entity} is already "{self.state}" (requesting new_state: "{new_state}"). No action will be taken.')
+
+  def turn_fireplace_on(self):
+    """ Turn living room fireplace on """
+    self.set_fireplace_state(LIVING_ROOM_FIREPLACE_RELAY, 'on')
+    
+  def turn_fireplace_off(self):
+    """ Turn living room fireplace off """
+    self.set_fireplace_state(LIVING_ROOM_FIREPLACE_RELAY, 'off')
 
 
   def _fireplace_state_cb(self, entity, attribute, old, new, kwargs):
@@ -87,6 +103,8 @@ class LivingRoomFireplace(BaseApp):
     r2 = self.climate.todays_high
 
     self._logger.log(f'r: {r}, r2: {r2}')
+
+    self.turn_fireplace_off()
 
 
 

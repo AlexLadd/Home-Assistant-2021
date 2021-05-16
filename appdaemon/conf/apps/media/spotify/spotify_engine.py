@@ -16,7 +16,7 @@ SPOTIFY_MEDIA_PLAYER = 'media_player.spotify_ha'
 class SpotifyEngine(BaseApp):
 
   def setup(self):
-    self.listen_state(self.test, 'input_boolean.ad_testing_1')
+    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
 
     self.mp = self.get_app('speakers')
     self.sc = self.get_app('spotify_client')

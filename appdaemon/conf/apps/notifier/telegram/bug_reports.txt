@@ -81,6 +81,7 @@
   -> FIXED - Error in security module turn_off_emergency_mode() line 248 that was fixed
 
 2021-03-23, 21:10:50 Stephanie: music did not play when I got home
+  -> RESOLVED - Spotify changed the API and is not working at the moment - using spotcast for now...
 
 2021-03-28, 12:32:40 Alex: speakers use_group does not change appropriate speakers to the corresponding group
 
@@ -101,5 +102,20 @@
   -> FIXED - changed config IP and made it static in unifi controller
 
 2021-04-18, 21:22:52 Alex: sonoff rf bridges are only working periodically. Appears to be the same issue as before... when it has too many sensors it stops working. This is only a hypothesis. Try using one device such as an esp32 or pi
+  -> SELF FIXED - resolved itself somehow...
 
 
+2021-05-07, 16:29:03 Alex: add in notifications and household alarm when smoke detectors are triggered. Also build in a regular notification to Alex/Steph to test the alarms.
+  -> PARTIALLY_DONE - added notification when alarm triggers - need to add in repeats
+
+2021-05-07, 16:29:03 Stephanie: laundry room and pantry lights turn on dim
+  -> NOT FIXED - part of a larger problem of many lights turning on to the wrong brightness level
+
+2021-05-08, 10:00:25 Stephanie: fireplace should turn off when we go to bed
+  -> ADDED - Should now be added to the house_lockdown sequence of events - not exhuastively tested yet though...
+
+2021-05-09, 21:54:00 Stephanie: master bedroom light did not turn on with motion, neither did the upstairs stairwell
+  -> FIXED/FOUND - dark_mode was not turned on this night... the root cause for this was not found
+
+2021-05-09, 22:36:20 Stephanie: change the hue component scan interval to one second
+  -> DONE - change scan_interval to 1 second

@@ -173,7 +173,7 @@ class AwakeAsleepController(BaseApp):
   def _night_notify(self, target):
     msg = self.messages.household_boolean_check()
     if msg:
-      msg = self.utils.one_space(msg) + ' Good night'
+      msg = f'{self.utils.one_space(msg)}. Good night {target}.'
       self.notifier.telegram_notify(msg, target, NOTIFY_TITLE)
 
 

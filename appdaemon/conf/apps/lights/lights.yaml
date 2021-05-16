@@ -187,6 +187,7 @@ lights:
         sleep_brightness: 25
 
     upstairs_stairway:
+      # log_level: INFO
       aliases:
         - upstairs_stairs
         - office_stairway

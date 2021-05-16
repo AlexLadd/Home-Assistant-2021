@@ -62,14 +62,16 @@ class DailyRoutines(BaseApp):
   
 
   def _setup_dark_mode_listeners(self):
+    # self._logger.log(f'Sunset/Sunrise offset: {datetime.timedelta(minutes=SUNSET_OFFSET).total_seconds()}')
     self.run_at_sunrise(
       self._dark_mode_off, 
       offset=datetime.timedelta(minutes=SUNRISE_OFFSET).total_seconds()
     )
-    self.run_at_sunset(
+    self.run_at_sunset( 
       self._dark_mode_on, 
       offset=datetime.timedelta(minutes=SUNSET_OFFSET).total_seconds()
     )
+    self.run_at_sunset(self._dark_mode_on)
 
   
   def _dark_mode_check(self):
@@ -83,12 +85,15 @@ class DailyRoutines(BaseApp):
 
 
   def _dark_mode_on(self, kwargs):
+    self._logger.log(f'Checking if dark_mode should be turned on now.')
+    self._test_sun_rise_down_times()
     if self.get_state(self.const.DARK_MODE_BOOLEAN) == 'off':
       self._logger.log('Dark mode turned on.')  
       self.turn_on(self.const.DARK_MODE_BOOLEAN)
 
 
   def _dark_mode_off(self, kwargs):
+    self._logger.log(f'Checking if dark_mode should be turned off now.')
     if self.get_state(self.const.DARK_MODE_BOOLEAN) == 'on':
       self._logger.log('Dark mode turned off.')
       self.turn_off(self.const.DARK_MODE_BOOLEAN)
@@ -107,3 +112,14 @@ class DailyRoutines(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self.log(f'Testing DailyRoutines Module: ') 
+    self._test_sun_rise_down_times()
+
+  
+  def _test_sun_rise_down_times(self):
+    self.log("--------------------------------------------------")
+    self.log("Sun logging test")
+    self.log("Next Sunrise: %s", self.sunrise())
+    self.log("Next Sunset: %s", self.sunset())
+    self.log("Sun down: %s", self.sun_down())
+    self.log("Sun up: %s", self.sun_up())
+    self.log("--------------------------------------------------")

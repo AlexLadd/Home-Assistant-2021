@@ -17,6 +17,7 @@ EMERGENCY_LIGHTS_FREQUENCY = 4
 SECURITY_MONITORING_BOOLEAN = 'input_boolean.security_monitoring_is_on'
 HUE_LIGHTS = 'light.all_hue_lights'
 LIGHT_SWITCHES = 'group.light_switches_master'
+DEEP_FREEZER_DOOR_SENSOR = 'binary_sensor.basement_freezer_door_sensor'
 
 DEFAULT_VACANCY_MONITOR_FREQUENCY = 12*60*60
 
@@ -27,7 +28,7 @@ NOTIFY_TITLE = 'Security'
 class SecurityManager(BaseApp):
 
   def setup(self):
-    # self.listen_state(self.test,'input_boolean.ad_testing_1')
+    self.listen_state(self.test,'input_boolean.ad_testing_1')
 
     self.alarm = self.get_app('alarm')
     # self.garage = self.get_app('garage')
@@ -40,6 +41,7 @@ class SecurityManager(BaseApp):
     # self.messages = self.get_app('messages')
     self.se = self.get_app('spotify_engine')
     self.mp = self.get_app('speakers')
+    self.living_room_fireplace = self.get_app('living_room_fireplace')
 
     self.handle_vacancy_monitoring = None
 
@@ -67,6 +69,7 @@ class SecurityManager(BaseApp):
   def house_lockdown_entities(self):
     """ Returns a list of entites that are unsecure if any """
     if self.presence.guest_mode:
+      self._logger.log(f'Guest mode is on while check house_lockdown_entities(). No check will be done.')
       return []
 
     unsecure = []
@@ -78,8 +81,12 @@ class SecurityManager(BaseApp):
         unsecure.extend(self.lights.lights_on_list())
       if not self.dw.doors_closed:
         unsecure.append('doors')
+      if self.living_room_fireplace.is_on:
+        unsecure.append('living room fireplace')
       # if not self.dw.front_door_secure:
       #   unsecure.append('front door')
+      if not self.dw.appliance_doors_closed:
+        unsecure += self.dw.appliance_door_check()
 
     elif self.presence.occupancy:
       if self.sleep.everyone_asleep:
@@ -89,8 +96,13 @@ class SecurityManager(BaseApp):
         #   unsecure.append('front door')
         if self.living_room_tv.is_on:
           unsecure.append('living room tv')
+        if self.living_room_fireplace.is_on:
+          unsecure.append('living room fireplace')
         # if self.garage.is_open:
         #   unsecure.append('garage door')
+        if not self.dw.appliance_doors_closed:
+          unsecure += self.dw.appliance_door_check()
+
     return unsecure
 
 
@@ -136,6 +148,7 @@ class SecurityManager(BaseApp):
     self.se.stop_music() # Stop Spotify music if playing
     self.lights.turn_all_off()
     self.living_room_tv.turn_off_tv()
+    self.living_room_fireplace.turn_fireplace_off()
     if self.presence.occupancy:
       self._logger.log(f'Someone is home - should be arming_home now.')
       self.alarm.arm_home()
@@ -175,6 +188,10 @@ class SecurityManager(BaseApp):
       r.append('alarm')
     if self.living_room_tv.is_on:
       r.append('living room TV')
+    if self.living_room_fireplace.is_on:
+      r.append('living room fireplace')
+    if not self.dw.appliance_doors_closed:
+      r += self.dw.appliance_door_check()
 
     res += ' ' + self.utils.list_to_pretty_print(r, 'unsecure')
     return res.strip()
@@ -304,8 +321,11 @@ class SecurityManager(BaseApp):
 
     # self._test_lockdown_secure_states()
 
-    r = self.get_unsecure_entities()
-    self._logger.log(f'Unsecure stuff: {r}')
+    # r = self.get_unsecure_entities()
+    # self._logger.log(f'Unsecure stuff: {r}')
+
+    r = self.dw.appliance_door_check()
+    self._logger.log(f'appliance door opened: {r}')
 
 
   def _test_lockdown_secure_states(self):
@@ -322,7 +342,7 @@ class SecurityManager(BaseApp):
     self._logger.log(f'vacation_mode_locked_down: {res}')
 
     res = self.house_locked_down
-    self._logger.log(f'house_locked_down: {res}')
+    self._logger.log(f'house_locked_down: {res} (Nothing is on/open currently that would prevent the house from entering a lockdown state correctly if not already in one)')
 
 
 

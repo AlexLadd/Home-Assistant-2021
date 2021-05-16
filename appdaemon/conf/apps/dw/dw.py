@@ -32,6 +32,9 @@ BASEMENT_DOOR_SENSOR = 'binary_sensor.basement_patio_door_sensor'
 MASTER_DOOR_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
 MASTER_DOOR_SCREEN_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
 
+DEEP_FREEZER_DOOR_SENSOR = 'binary_sensor.basement_freezer_door_sensor'
+APPLIANCE_DOORS = [DEEP_FREEZER_DOOR_SENSOR]
+
 FRONT_DOOR_RECENTLY_OPEN_TIME = 10*60
 KITCHEN_DOOR_RECENTLY_OPEN_TIME = 10*60
 DOOR_OPEN_INITIAL_NOTIFY_TIME = 5*60
@@ -46,7 +49,7 @@ NOTIFY_TITLE = 'Entry Points'
 class DoorsWindows(BaseApp):
 
   def setup(self):
-    # self.listen_state(self.test, 'input_boolean.ad_testing_3')
+    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
 
     self.notifier = self.get_app('notifier')
     self.presence = self.get_app('presence')
@@ -65,6 +68,10 @@ class DoorsWindows(BaseApp):
   @property
   def doors_closed(self):
     return bool(not self.is_open(DOORS_MASTER))
+
+  @property
+  def appliance_doors_closed(self):
+    return True not in [self.get_state(d) == 'off' for d in APPLIANCE_DOORS]
 
   @property
   def windows_closed(self):
@@ -156,9 +163,18 @@ class DoorsWindows(BaseApp):
     if len(open) == 0:
       result = "All doors and windows are closed."
     else:
-      result = list_to_pretty_print(open, 'open')
+      result = self.utils.list_to_pretty_print(open, 'open')
 
     return result.lower().capitalize()
+
+
+  def appliance_door_check(self):
+    """ Return if which appliance doors are open if any - LIST """
+    opened = []
+    for d in APPLIANCE_DOORS:
+      if self.is_open(d):
+        opened.append(self.friendly_name(d).replace(' sensor', ''))
+    return self.utils.list_to_pretty_print(opened, 'open')
 
   
   def _kitchen_door_opened_cb(self, entity, attribute, old, new, kwargs):
@@ -214,9 +230,18 @@ class DoorsWindows(BaseApp):
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log('Testing DW Module: ')
     # self._door_test()
+    self._appliance_door_tests()
     
-    r = self.entry_point_check()
-    self._logger.log(f'Door & Window Check: {r}')
+
+  def _appliance_door_tests(self):
+    self._logger.log(f'----------------------')
+    self._logger.log(f'Appliances Doors Tests')
+    r = [self.get_state(d) == 'off' for d in APPLIANCE_DOORS]
+    self._logger.log(f'Appliance doors: {APPLIANCE_DOORS}, True check: {r}, result: {True not in r} ({self.appliance_doors_closed})')
+    for d in APPLIANCE_DOORS:
+      self._logger.log(f'{d} is open: {self.is_open(d)}')
+    self._logger.log(f'All appliance doors closed: {self.appliance_doors_closed}')
+    self._logger.log(f'----------------------')
 
 
   def _door_test(self):

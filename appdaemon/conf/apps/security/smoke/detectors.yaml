@@ -1,0 +1,13 @@
+
+    # Smoke & CO Detectors
+
+
+smoke_detectors:
+  module: smoke
+  class: Smoke
+  dependencies:
+    - custom_logger
+    - notifier
+    - lights
+    
+
