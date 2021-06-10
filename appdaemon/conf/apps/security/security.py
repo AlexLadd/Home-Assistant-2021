@@ -28,7 +28,7 @@ NOTIFY_TITLE = 'Security'
 class SecurityManager(BaseApp):
 
   def setup(self):
-    self.listen_state(self.test,'input_boolean.ad_testing_1')
+    # self.listen_state(self.test,'input_boolean.ad_testing_1')
 
     self.alarm = self.get_app('alarm')
     # self.garage = self.get_app('garage')
@@ -90,8 +90,8 @@ class SecurityManager(BaseApp):
 
     elif self.presence.occupancy:
       if self.sleep.everyone_asleep:
-        if not self.alarm.armed_home:
-          unsecure.append('alarm armed home')
+        if not self.alarm.armed_home and not self.alarm.armed_night:
+          unsecure.append('alarm armed home/night (someone home and asleep)')
         # if not self.dw.front_door_secure:
         #   unsecure.append('front door')
         if self.living_room_tv.is_on:

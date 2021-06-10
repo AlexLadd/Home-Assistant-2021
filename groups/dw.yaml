@@ -11,6 +11,7 @@ door_sensors_master:
     - binary_sensor.front_door_window_sensor
     - binary_sensor.kitchen_door_window_sensor
     - binary_sensor.basement_patio_door_sensor
+    - binary_sensor.basement_freezer_door_sensor
 
 
 window_sensors_master:

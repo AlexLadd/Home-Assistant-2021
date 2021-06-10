@@ -386,7 +386,7 @@ class SpotifyClient(BaseApp):
         self.run_in(self.play_timer_callback, 1, device=device_name, uri=uri, off_set=offset, force_cc_update=True)
         return
       else:
-        self._logger.log('Max retries reached trying to play Spotify music on: "{}". No music will play.'.format(device_name), level='ERROR')
+        self._logger.log('Max retries reached trying to play Spotify music on: "{}". No music will play.'.format(device_name), level='ERROR', notify=False)
 
     self._play_retry_count = 0
 

@@ -35,7 +35,7 @@ MAX_TOOL_TEMP = 260
 THRESHOLD_BED_TEMP = 1.05
 THRESHOLD_TOOL_TEMP = 1.2
 
-WARNING_NOTIFY_FREQUENCY = 900 # 15 minutes
+WARNING_NOTIFY_FREQUENCY = 15*60 # 15 minutes
 
 NOTIFY_TITLE = '3D Printer'
 
@@ -46,12 +46,13 @@ class ThreeDPrinter(BaseApp):
     # self.listen_state(self.test, 'input_boolean.ad_testing_1')
     self.notifier = self.get_app('notifier')
 
-    self._printer_relay = None
 
     self.listen_state(self._tool_temp_state_change, ACTUAL_TOOL_TEMP_SENSOR)
     self.listen_state(self._printer_state_change, PRINTER_CURRENT_STATE)
     # This version of checking completion fires many, many, many more callbacks...
     # self.listen_state(self._job_state_change, PRINTER_PERCENT_COMPLETE) 
+
+    self.handle_reboot = self.listen_event(self._ha_reboot, 'plugin_started')
 
 
   @property
@@ -122,6 +123,14 @@ class ThreeDPrinter(BaseApp):
     return bool(self.get_state(PRINTER_RELAY) == 'on')
 
 
+  def _ha_reboot(self, event_name, data, kwargs):
+    # self._logger.log('Home assistant restarted.')
+    if self._safe_temps:
+      self._turn_on_relay()
+    else:
+      self._turn_off_relay()
+
+
   def _turn_on_relay(self):
     if not self._printer_relay_on:
       self._logger.log('3D Printer relay turned on.')
@@ -148,16 +157,15 @@ class ThreeDPrinter(BaseApp):
         return
 
       if not self._safe_temps:
-        # self._turn_off_relay()
+        self._turn_off_relay()
         self.run_in(self._warning_notify_callback, 5)
       else:
-        if self._printer_relay:
-          self._turn_on_relay()
+        self._turn_on_relay()
 
 
   def _warning_notify_callback(self, kwargs):
     # Make sure the printer is cut off from power!!!
-    # self._turn_off_relay()
+    self._turn_off_relay()
 
     if self.target_bed_temp <= 0 and self.target_tool_temp <= 0:
         # The printer is off or the job has been cancelled

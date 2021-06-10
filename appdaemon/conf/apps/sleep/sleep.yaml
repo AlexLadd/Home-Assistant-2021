@@ -19,4 +19,5 @@ sleep_controller:
     - messages
     - climate
     - spotify_engine
+    - cat_water_dish
 

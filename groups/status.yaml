@@ -13,7 +13,11 @@ status_sensors_master:
     - binary_sensor.sonoff_rf_bridge_3_status
     - binary_sensor.sonoff_rf_bridge_4_status
     - binary_sensor.sonoff_s31_washing_machine
+    - binary_sensor.sonoff_s20_cat_water_dish_status
+    - binary_sensor.sonoff_s20_3d_printer_status
     - binary_sensor.esp32_bluetooth_tracker_one_status
+    - binary_sensor.esp32_bluetooth_tracker_two_status
+    - binary_sensor.basement_storage_temperature_and_humitidy_sensor_status
     - binary_sensor.elexa_consumer_products_inc_dome_door_window_sensor_sensor
     - binary_sensor.elexa_consumer_products_inc_dome_door_window_sensor_sensor_4
     - sensor.living_room_broadlink
@@ -31,8 +35,12 @@ wifi_sensors_master:
     - sensor.sonoff_rf_bridge_3_wifi_signal
     - sensor.sonoff_rf_bridge_4_wifi_signal
     - sensor.sonoff_s31_washing_machine_wifi_signal
+    - sensor.sonoff_s20_3d_printer_wifi_signal
     - sensor.nextion_fireplace_wallplate_wifi_signal
     - sensor.esp32_bluetooth_tracker_one_wifi_signal
+    - sensor.esp32_bluetooth_tracker_two_wifi_signal
+    - sensor.sonoff_s20_cat_water_dish_wifi_signal
+    - sensor.basement_storage_temperature_and_humitidy_sensor_wifi_signal
 
 
 # Misc Household Status Sensors

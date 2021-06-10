@@ -5,3 +5,7 @@ plugs_master:
   name: "Plugs"
   entities:
     - switch.sonoff_s31_washing_machine_relay
+    - switch.sonoff_s20_cat_water_dish_relay
+    - switch.sonoff_s20_3d_printer_relay
+    - switch.outdoor_mobile_left_plug
+    - switch.outdoor_mobile_right_plug

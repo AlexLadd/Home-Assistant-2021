@@ -9,6 +9,15 @@ basement_freezer:
     - presence
 
 
+cat_water_dish:
+  module: cat_water
+  class: WaterDish
+  dependencies:
+    - custom_logger
+    - notifier
+    - sleep
+
+
 washer:
   module: washer
   class: Washer

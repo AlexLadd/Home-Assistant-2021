@@ -10,4 +10,12 @@ smoke_detectors:
     - notifier
     - lights
     
+co_detectors:
+  module: co
+  class: CODetector
+  dependencies:
+    - custom_logger
+    - notifier
+    - lights
+    
 

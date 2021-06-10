@@ -62,9 +62,10 @@ class LivingRoomFireplace(BaseApp):
 
 
   def _fireplace_state_cb(self, entity, attribute, old, new, kwargs):
-    self._logger.log(f'The living room fireplace was just turned {new}', level='DEBUG')
-    # r = self.get_state(LIVING_ROOM_FIREPLACE_RELAY, attribute='all')
-    # self._logger.log(f'Fireplace event: {r}')
+    if self.utils.valid_input(old, new):
+      self._logger.log(f'The living room fireplace was just turned {new}', level='DEBUG')
+      # r = self.get_state(LIVING_ROOM_FIREPLACE_RELAY, attribute='all')
+      # self._logger.log(f'Fireplace event: {r}')
 
 
   def _fireplace_event_cb(self, event_name, data, kwargs):

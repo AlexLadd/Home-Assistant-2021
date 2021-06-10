@@ -86,6 +86,7 @@ class PC(BaseApp):
     """
     self._logger.log('First person got home.', level='INFO')
     self.presence.turn_off_vacation_mode()
+    self.sm.stop_security_monitoring()
 
 
   def _play_greeting_song(self, song):
@@ -135,6 +136,7 @@ class PC(BaseApp):
     Triggered when occupancy is switched 'on' -> 'off' """
     self._logger.log('Last person left, nobody home.', level='INFO')
     self.sm.lockdown_house()
+    self.sm.start_security_monitoring(start_offset=15)
 
 
   def _single_person_left(self, kwargs):
@@ -270,10 +272,8 @@ class PC(BaseApp):
     if self.utils.valid_input(old, new):
       if new == 'on':
         self._first_person_home()
-        self.sm.stop_security_monitoring()
       elif new == 'off':
         self._last_person_left_home()
-        self.sm.start_security_monitoring(start_offset=5)
 
 
   def _guest_mode_state_change(self, entity, attribute, old, new, kwargs):

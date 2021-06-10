@@ -3,6 +3,9 @@
 Appdaemon App Constants
 """
 
+# Helpers
+INVALID_STATES = ['unavailable', 'unknown', 'Unavailable', 'Unknown', 'None']
+
 
 # Alarm Stuff
 ALARM_CONTROL_PANEL = 'alarm_control_panel.ha_alarm'

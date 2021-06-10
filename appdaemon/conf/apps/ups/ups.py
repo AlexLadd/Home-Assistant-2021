@@ -1,7 +1,9 @@
 """
 APC UPS Monitoring & safe NUC shutdown
 
-TODO: Add NUC autoshutdown feature when UPS charge is low and power is down
+TODO: 
+  - Add NUC autoshutdown feature when UPS charge is low and power is down
+  - Add notification when UPS is 'down' for long period of time
 """
 
 from base_app import BaseApp
@@ -20,6 +22,9 @@ STATUS_SENSOR_OFF = 'On Battery Battery Discharging'
 STATUS_DATA_ON = 'OL CHRG'
 STATUS_DATA_OFF = 'OB DISCHRG'
 
+UPS_OFFLINE_NOTIFY_SECONDS = 30*60 # 30 minutes offline before notification sent
+UPS_OFFLINE_STATE = 'unavailable'
+
 NOTIFY_TARGET = 'status'
 NOTIFY_TITLE = 'APC UPS'
 
@@ -32,9 +37,9 @@ class UPS(BaseApp):
     self.notifier = self.get_app('notifier')
 
     self.listen_state(self._ups_charge_callback, UPS_BATTERY_CHARGE)
-    self.listen_state(self._ups_status_callback, UPS_STATUS_SENSOR)
+    # self.listen_state(self._ups_status_callback, UPS_STATUS_SENSOR)   # Duplicate functionality of UPS_STATUS_DATA listener
     self.listen_state(self._ups_status_callback, UPS_STATUS_DATA)
-
+    self.listen_state(self._ups_status_unavailable_long_term, UPS_STATUS_SENSOR, duration=UPS_OFFLINE_NOTIFY_SECONDS, new=UPS_OFFLINE_STATE)
 
   def _ups_charge_callback(self, entity, attribute, old, new, kwargs):
     """ Monitor UPS charge """
@@ -75,9 +80,21 @@ class UPS(BaseApp):
       self.notifier.telegram_notify(msg, 'status', NOTIFY_TITLE)
 
 
+  def _ups_status_unavailable_long_term(self, entity, attribute, old, new, kwargs):
+    """ Send notification after UPS is 'unavailable' for a set amount of time """
+    if not isinstance(new, str):
+      return
+
+    msg = f'The UPS has been in the {new} state for {UPS_OFFLINE_NOTIFY_SECONDS/60} minutes. Please have a look.'
+    self._logger.log(msg + f'locals: {locals()}', level='WARNING')
+    self.notifier.telegram_notify(msg, target='alarm', title='UPS OFFLINE')
+
+
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing UPS Module: ')  
+    self._test_state_check()
 
+  def _test_state_check(self):
     r = self.get_state(UPS_STATUS_SENSOR)
     self._logger.log(f'Status: {r}')
     r = self.get_state(UPS_STATUS_DATA)

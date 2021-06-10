@@ -97,6 +97,7 @@ DONE 2021-02-09, 19:01:09 Stephanie: keep main bathroom light on when the fan is
 2021-03-22, 22:26:28 Alex: monitor docker containers
 
 2021-03-22, 22:27:12 Alex: add motion sensor and power switch to cat water bowl
+  -> PARTIAL_FIX - added sonoff power switch to turn on/off when we both go to sleep
 
 2021-03-23, 21:11:09 Stephanie: play 3 songs when wake up music plays
 
@@ -147,5 +148,10 @@ Alex Move DW options to yaml config and validate? Door sensor, Screen door senso
 2021-05-07, 16:29:03 Alex: install Carbon Monoxide detectors
 
 2021-05-15, 10:10:21 Alex: add on/off boolean for each door open message so it can easily be disabled. OR add a second sensor to the screen doors on appropriate doors
+  -> DONE - Added in support for two back-to-back doors
 
 2021-05-15, 20:32:14 Stephanie: change 'good night' to 'good evening' on messages that happen before we are both set to sleep
+  -> DONE - removed good night all together in the greeting() method from the message app
+
+  Alex: Add notification when doors are open when we go to sleep
+  -> MAYBE_DONE - this might be added in security check after the new changes today

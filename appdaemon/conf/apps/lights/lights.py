@@ -880,7 +880,7 @@ class Light:
     old_attrs = old['attributes'] if isinstance(old, dict) else old
 
     # Light changed settings while on
-    adjusted_while_on = old_state == new_state and old_attrs != new_attrs # Added old != new check
+    adjusted_while_on = old_state == new_state and old_attrs != new_attrs
 
     if new_state == 'on':
       self._logger.log(f'[{self.name}] was turned ON in reality!', 'NOTSET')
@@ -893,7 +893,9 @@ class Light:
 
         # Light manually adjusted while on
         if adjusted_while_on:
-          if self._previous_light_state['attributes'] == old.get("attributes", {}):
+          if 'attributes' not in self._previous_light_state:
+            self._logger.log(f'Light does not have any attributes in _previous_light_state: {self._previous_light_state}')
+          elif self._previous_light_state['attributes'] == old.get("attributes", {}):
             # Light was automatically adjust since we cached the "old" state before turning on automatically
             self._previous_light_state = new
           else:

@@ -11,3 +11,4 @@ indoor_temp_sensors_master:
     - sensor.entryway_temperature
     - sensor.master_bathroom_motion_sensor_temperature
     - sensor.living_room_motion_sensor_temperature
+    - sensor.basement_storage_temperature_and_humitidy_sensor_temperature

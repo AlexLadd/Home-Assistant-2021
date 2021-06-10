@@ -65,10 +65,12 @@ class Messages(BaseApp):
       return 'Good morning. '
     elif 12 <= hour < 17:
       return 'Good afternoon. '
-    elif 17 <= hour < 20:
-      return 'Good evening. '
     else:
-      return 'Good night. '
+      return 'Good evening. '
+    # elif 17 <= hour < 20:
+    #   return 'Good evening. '
+    # else:
+    #   return 'Good night. '
 
 
   def random_affirmative_response(replace_hyphens=True):

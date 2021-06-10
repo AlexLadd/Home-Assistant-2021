@@ -1,6 +1,31 @@
 
+homeassistant:
+  name: Home
+  latitude: !secret latitude
+  longitude: !secret longitude
+  elevation: 350
+  unit_system: metric
+  time_zone: !secret time_zone
+  external_url: !secret external_url
+  # internal_url: !secret internal_url
+  allowlist_external_dirs:
+    - '/config/www'
+  # allowlist_external_urls:
+  #   - "http://images.com/image1.png"
+  # media_dirs:
+  #   media: "/media"
+  #   recordings: "/mnt/recordings"
+  # legacy_templates: false
+
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
+
+lovelace: !include lovelace/lovelace.yaml
+  # mode: yaml
+  # Update v=1 everytime the card is updated
+  # resources:
+  #   - type: js
+  #     url: /local/custom-cards/monster-card.js?v=1
 
 
 cloud:

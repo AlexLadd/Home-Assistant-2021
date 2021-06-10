@@ -256,7 +256,7 @@ lights:
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
         use_lux: 'sensor.average_light_level'
-        lux_threshold: 75
+        lux_threshold: 35
     living_room_light_strip:
       aliases:
         - living room light strip
@@ -297,7 +297,7 @@ lights:
       properties:
         use_dark_mode: 'input_boolean.dark_mode'
         use_lux: 'sensor.average_light_level'
-        lux_threshold: 75
+        lux_threshold: 55
     kitchen_door:
       aliases:
         - kitchen door inside

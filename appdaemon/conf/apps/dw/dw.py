@@ -14,8 +14,10 @@ Functionality:
 Future updates:
   -> 
 
+TODO:
+  - Move config to yaml and add VOLUPTUOUS validation
+
 Created: Jan 23, 2021
-Last Updated: Jan 23, 2021
 """
 
 from base_app import BaseApp
@@ -28,9 +30,32 @@ FRONT_DOOR_SENSOR = 'binary_sensor.front_door_window_sensor'
 KITCHEN_DOOR_SENSOR = 'binary_sensor.kitchen_door_window_sensor'
 STUDY_DOOR_SENSOR = 'binary_sensor.study_outside_door_sensor'
 BASEMENT_DOOR_SENSOR = 'binary_sensor.basement_patio_door_sensor'
-
 MASTER_DOOR_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
-MASTER_DOOR_SCREEN_SENSOR = 'binary_sensor.master_bedroom_outside_door_sensor'
+
+MASTER_DOOR_SCREEN_SENSOR = 'binary_sensor.master_bedroom_screen_door_sensor'
+
+HOUSE_DOORS = {
+  'front_door' : {
+    'door_sensor' : FRONT_DOOR_SENSOR,
+    'screen_sensor' : None,
+  },
+  'kitchen_door' : {
+    'door_sensor' : KITCHEN_DOOR_SENSOR,
+    'screen_sensor' : None,
+  },
+  'study_door' : {
+    'door_sensor' : STUDY_DOOR_SENSOR,
+    'screen_sensor' : None,
+  },
+  'basement_door' : {
+    'door_sensor' : BASEMENT_DOOR_SENSOR,
+    'screen_sensor' : None,
+  },
+  'master_door' : {
+    'door_sensor' : MASTER_DOOR_SENSOR,
+    'screen_sensor' : MASTER_DOOR_SCREEN_SENSOR,
+  },
+}
 
 DEEP_FREEZER_DOOR_SENSOR = 'binary_sensor.basement_freezer_door_sensor'
 APPLIANCE_DOORS = [DEEP_FREEZER_DOOR_SENSOR]
@@ -57,17 +82,38 @@ class DoorsWindows(BaseApp):
 
     self._handle_kitchen_door_open = None
 
+    # Door Listeners
     self.listen_state(self._kitchen_door_opened_cb, KITCHEN_DOOR_SENSOR, old='off', new='on')
     self.listen_state(self._door_open_notify, KITCHEN_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME)
     self.listen_state(self._door_open_notify, FRONT_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME)
     self.listen_state(self._door_open_notify, STUDY_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60)
-    self.listen_state(self._door_open_notify, MASTER_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60)
     self.listen_state(self._door_open_notify, BASEMENT_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60)
+    self.listen_state(self._door_open_notify, MASTER_DOOR_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60, second_door_sensor=MASTER_DOOR_SCREEN_SENSOR)
+
+    # Screen Door Listeners
+    self.listen_state(self._door_open_notify, MASTER_DOOR_SCREEN_SENSOR, new='on', duration=DOOR_OPEN_INITIAL_NOTIFY_TIME, repeat_time=15*60, second_door_sensor=MASTER_DOOR_SENSOR)
 
     
   @property
   def doors_closed(self):
-    return bool(not self.is_open(DOORS_MASTER))
+    """ Return True all doors are close - Does not accouint for any screen doors """
+    # return bool(not self.is_open(DOORS_MASTER))
+    # return True not in [self.get_state(d) == 'off' for name, d in HOUSE_DOORS.items()['door_sensor']]
+    for d in HOUSE_DOORS.values():
+      if self.get_state(d['door_sensor']) == 'on':
+        return False
+    return True
+
+  @property
+  def doors_secure(self):
+    """ Return True all doors or screens are close - Accouint for any screen doors in conjunction with their doors """
+    for d in HOUSE_DOORS.values():
+      if self.get_state(d['door_sensor']) == 'on': 
+        if d['screen_sensor'] is not None and self.get_state(d['screen_sensor']) == 'on':
+          return False
+        elif d['screen_sensor'] is None:
+          return False
+    return True
 
   @property
   def appliance_doors_closed(self):
@@ -145,13 +191,10 @@ class DoorsWindows(BaseApp):
     open = []
  
     if door_check:
-      group = self.get_state(DOORS_MASTER, attribute="all")
-      for entity in group['attributes']['entity_id']:
-        entity_info = self.get_state(entity, attribute="all")
-        if entity_info['state'] == 'on':
-          name = entity_info['attributes']['friendly_name'].replace(' Sensor','').lower()
+      for d in HOUSE_DOORS.values():
+        if self.get_state(d['door_sensor']) == 'on': 
+          name = self.friendly_name(d['door_sensor']).replace(' Sensor', '').lower()
           open.append(name)
-
     if window_check:
       group = self.get_state(WINDOWS_MASTER, attribute="all")
       for entity in group['attributes']['entity_id']:
@@ -188,22 +231,22 @@ class DoorsWindows(BaseApp):
   def _door_open_notify(self, entity, attribute, old, new, kwargs):
     """ Callback used to notify when a door has been opened for too long """
     repeat_time = kwargs.get('repeat_time', DOOR_OPEN_REPEAT_NOTIFY_TIME)
-    screen_sensor = kwargs.get('screen_sensor', None)
-    self._door_open_notify_timer( { 'door': entity, 'repeat_time': repeat_time, 'screen_sensor': screen_sensor } )
+    second_door_sensor = kwargs.get('second_door_sensor', None)
+    self._door_open_notify_timer( { 'door': entity, 'repeat_time': repeat_time, 'second_door_sensor': second_door_sensor } )
 
 
   def _door_open_notify_timer(self, kwargs):
     door = kwargs.get('door', None)
     repeat_time = kwargs.get('repeat_time', DOOR_OPEN_REPEAT_NOTIFY_TIME)
-    screen_sensor = kwargs.get('screen_sensor', None)
+    second_door_sensor = kwargs.get('second_door_sensor', None)
 
     if not door:
       self._logger.log(f'Failed to get door, kwargs: {kwargs}')
       return
 
     if self.is_open(door):      
-      if screen_sensor is not None and not self.is_open(screen_sensor):
-        msg = f'The screen door sensor ({screen_sensor}) is closed while the {self.friendly_name(door)} door is open. No notifications will be sent.'
+      if second_door_sensor is not None and not self.is_open(second_door_sensor):
+        msg = f'The door is open ({self.friendly_name(door)}) while the second_door_sensor ({self.friendly_name(second_door_sensor)}) is open. No notification will be sent.'
         self._logger.log(msg, level='INFO')
         return
 
@@ -229,8 +272,8 @@ class DoorsWindows(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log('Testing DW Module: ')
-    # self._door_test()
-    self._appliance_door_tests()
+    self._door_test()
+    # self._appliance_door_tests()
     
 
   def _appliance_door_tests(self):
@@ -248,8 +291,10 @@ class DoorsWindows(BaseApp):
     res = self.get_state(DOORS_MASTER, attribute='all')
     self._logger.log(res)
 
-    self.run_in(self._door_open_notify_timer, 1, door=FRONT_DOOR_SENSOR)
-    self.run_in(self._door_open_notify_timer, 1, door=KITCHEN_DOOR_SENSOR)
+    # self.run_in(self._door_open_notify_timer, 1, door=FRONT_DOOR_SENSOR)
+    # self.run_in(self._door_open_notify_timer, 1, door=KITCHEN_DOOR_SENSOR)
+    self.run_in(self._door_open_notify_timer, 1, door=MASTER_DOOR_SENSOR, second_door_sensor=MASTER_DOOR_SCREEN_SENSOR)
+    self.run_in(self._door_open_notify_timer, 2, door=MASTER_DOOR_SCREEN_SENSOR, second_door_sensor=MASTER_DOOR_SENSOR)
 
     for e in res['attributes'].get('entity_id', []):
       self._logger.log(f'Door entity_id: {e}')
@@ -264,4 +309,8 @@ class DoorsWindows(BaseApp):
     self._logger.log(f'Front door just opened: {res} (time_limit: 10000000000). Last changed: {self.utils.last_changed(self, FRONT_DOOR_SENSOR)/60} minutes.')
     res = self.kitchen_door_recently_opened(1000000000)
     self._logger.log(f'Kitchen door just opened: {res} (time_limit: 1000000000). Last changed: {self.utils.last_changed(self, KITCHEN_DOOR_SENSOR)/60} minutes.')
+
+    self._logger.log(f'All doors closed: {self.doors_closed}')
+    self._logger.log(f'All doors secure: {self.doors_secure}')
+    self._logger.log(f'Entry point check: {self.entry_point_check()}')
   

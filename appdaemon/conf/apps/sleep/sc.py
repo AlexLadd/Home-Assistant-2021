@@ -44,6 +44,7 @@ class AwakeAsleepController(BaseApp):
     self.sm = self.get_app('security')
     self.messages = self.get_app('messages')
     self.se = self.get_app('spotify_engine')
+    self.cat_water_dish = self.get_app('cat_water_dish')
 
     self._sleep_lock = threading.Lock()       
 
@@ -84,6 +85,7 @@ class AwakeAsleepController(BaseApp):
 
   def _last_person_asleep(self):
     self._logger.log('Last person asleep, everyone is asleep.')
+    self.cat_water_dish.turn_relay_off()
     self.lights.turn_all_off() # Use this until security manager is setup
     self.sm.lockdown_house()
     self.sm.start_security_monitoring(frequency=SECURITY_MONITORING_FREQUENCY)
@@ -108,6 +110,7 @@ class AwakeAsleepController(BaseApp):
 
   def _first_person_awake(self):
     self._logger.log('First person awake.')
+    self.cat_water_dish.turn_relay_on()
     self.sm.stop_security_monitoring()
 
 

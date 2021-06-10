@@ -8,3 +8,12 @@ smoke_detector_master:
     # - binary_sensor.kitchen_smoke_detector
     - binary_sensor.laundry_room_smoke_detector
     - binary_sensor.office_smoke_detector
+    - binary_sensor.upstairs_co_smoke_detector
+    - binary_sensor.main_floor_co_smoke_detector
+    - binary_sensor.basement_co_smoke_detector
+
+# co_smoe_detector_master:
+#   name: "CO & Smoke Detectors"
+#   entities:
+#     - binary_sensor.upstairs_co_smoke_detector
+    

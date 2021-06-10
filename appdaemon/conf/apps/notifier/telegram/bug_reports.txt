@@ -95,6 +95,7 @@
 2021-04-04, 11:47:14 Stephanie: alex and Steph person leaving home are off by almost 10 minutes
 
 2021-04-04, 11:49:30 Stephanie: when last person leaves home, call arm alarm in the security app before calling the security monitoring loop to prevent the initial warning message being sent
+  -> SHOULD BE FIXED - changed start_offset to 15 seconds after the last person leaves home
 
 2021-04-08, 12:16:29 Stephanie: the watching tv lights are on while it's light outside
 
@@ -103,7 +104,6 @@
 
 2021-04-18, 21:22:52 Alex: sonoff rf bridges are only working periodically. Appears to be the same issue as before... when it has too many sensors it stops working. This is only a hypothesis. Try using one device such as an esp32 or pi
   -> SELF FIXED - resolved itself somehow...
-
 
 2021-05-07, 16:29:03 Alex: add in notifications and household alarm when smoke detectors are triggered. Also build in a regular notification to Alex/Steph to test the alarms.
   -> PARTIALLY_DONE - added notification when alarm triggers - need to add in repeats
@@ -119,3 +119,8 @@
 
 2021-05-09, 22:36:20 Stephanie: change the hue component scan interval to one second
   -> DONE - change scan_interval to 1 second
+
+2021-05-17, 22:13:22 Stephanie: when both of us are asleep, the message should say what doors are open (ie master bedroom outside door). 
+
+The master bedroom outside door notification should be disabled during the day when someone is home.
+  -> DONE - Added sensor to both door and screen
