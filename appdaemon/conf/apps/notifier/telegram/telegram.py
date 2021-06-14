@@ -7,13 +7,13 @@ Handles/Processes incoming/outgoing telegram messages
 from base_app import BaseApp
 
 CHATS = {
+  'alex': -414341807,
+  'steph': -414341807,
   'logging': -469980278,
   'status': -414341807,
   'alarm': -489764741,
   'reporting': -574720532,
   # 'alex': 1514688713,
-  'alex': -414341807,
-  'steph': -414341807
 }
 REVERSE_CHATS = {id: name for name, id in CHATS.items()}
 VALID_IDS = [v for v in CHATS.values()]

@@ -45,6 +45,7 @@ class AwakeAsleepController(BaseApp):
     self.messages = self.get_app('messages')
     self.se = self.get_app('spotify_engine')
     self.cat_water_dish = self.get_app('cat_water_dish')
+    self.dw = self.get_app('doors_windows')
 
     self._sleep_lock = threading.Lock()       
 
@@ -75,7 +76,6 @@ class AwakeAsleepController(BaseApp):
     # climate_check should catch this but keeping it here for now as a fallback
     if self.climate.todays_low <= 0 and self.messages.entry_point_check() != "All doors and windows are closed.":
       msg += f' The overnight low is {self.climate.todays_low} and {self.messages.entry_point_check().lower()}'
-      self.climate.outside_tem
 
     if msg:
       msg += ' Good night.'
@@ -175,6 +175,8 @@ class AwakeAsleepController(BaseApp):
 
   def _night_notify(self, target):
     msg = self.messages.household_boolean_check()
+    if not self.dw.doors_secure:
+      msg += ' ' + self.dw.entry_point_check(door_check=True, window_check=False)
     if msg:
       msg = f'{self.utils.one_space(msg)}. Good night {target}.'
       self.notifier.telegram_notify(msg, target, NOTIFY_TITLE)

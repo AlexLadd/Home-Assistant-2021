@@ -175,7 +175,7 @@ class LightController(BaseApp):
   APP_SCHEMA = BaseApp.APP_SCHEMA.extend(LIGHT_SCHEMA)
 
   def setup(self):
-    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
+    self.listen_state(self.test, 'input_boolean.ad_testing_1')
     # self.listen_state(self.test2, 'input_boolean.ad_testing_2')
     # self.listen_state(self.test3, 'input_boolean.ad_testing_3')
 
@@ -420,7 +420,9 @@ class LightController(BaseApp):
 
 
   def test(self, entity, attribute, old, new, kwargs):
-    self.log(f'Testing Motion Module: ') 
+    self.log(f'Testing Light Module: ') 
+    self.turn_light_on('study', brightness=10)
+
     # self.toggle_light('light.master_fan_light')
 
     # res = self.get_state('switch.kitchen_ceiling', attribute='all')
@@ -482,6 +484,7 @@ class Light:
 
     self._previous_light_state = {}               # Expected current light state (used to compare when changes make for disabling automated mode)
     self._handle_light_check = None               # Check that the light is in the correct state
+    self._handle_repeat_light_on = None           # Repeat the light turn_on call to make sure it set the correct settings (brightness, etc)
     self._check_count = 0                         # Number of times trying to verify light is in correct state
     self._next_check_time = 1                     # Number of second before next light state check
 
@@ -613,7 +616,23 @@ class Light:
     self._enabled = True
 
 
+  def _cancel_repeat_turn_on(self):
+    """ Cancel turn_light_on repeat call """
+    if self._handle_repeat_light_on is not None:
+      self.app.cancel_timer(self._handle_repeat_light_on)
+
+
   def turn_light_on(self, colour=None, brightness=None, transition=None, scene=None, override=False):
+    """
+    param override: Will adjust light regardless of other settings (dark_mode, _enabled, physically switch, 0 sleep brightness)
+    """
+    # Cancel repeat call right away & call repeat again later
+    self._cancel_repeat_turn_on()
+    self._turn_light_on(colour, brightness, transition, scene, override)
+    self._handle_repeat_light_on = self.app.run_in(lambda *_: self._turn_light_on(colour, brightness, transition, scene, override), 0.2)
+
+
+  def _turn_light_on(self, colour=None, brightness=None, transition=None, scene=None, override=False):
     """
     param override: Will adjust light regardless of other settings (dark_mode, _enabled, physically switch, 0 sleep brightness)
     """
@@ -819,11 +838,13 @@ class Light:
         self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR', notify=False)
   
     # Trying to track down why lights sometimes turn on dimmer than they should (very dim...)
-    if kwargs.get('brightness_pct', 1000) < 30 or kwargs.get('brightness', 1000) < 30:
-      self._logger.log(f'[{self.name}] LOW BRIGHTNESS - {service} using {kwargs}')
+    # if kwargs.get('brightness_pct', 1000) < 30 or kwargs.get('brightness', 1000) < 30:
+    #   self._logger.log(f'[{self.name}] LOW BRIGHTNESS - {service} using {kwargs}')
 
 
   def turn_light_off(self, transition=None, override=False):
+    self._cancel_repeat_turn_on()
+
     if not self._should_adjust(override, turning_on=False):
       return
 

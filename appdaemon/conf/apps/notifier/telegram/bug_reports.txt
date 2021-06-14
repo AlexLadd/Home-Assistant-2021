@@ -121,6 +121,7 @@
   -> DONE - change scan_interval to 1 second
 
 2021-05-17, 22:13:22 Stephanie: when both of us are asleep, the message should say what doors are open (ie master bedroom outside door). 
+  -> DONE- added to night_notify for each person when going to sleep in sleep controller
 
 The master bedroom outside door notification should be disabled during the day when someone is home.
   -> DONE - Added sensor to both door and screen

@@ -20,4 +20,5 @@ sleep_controller:
     - climate
     - spotify_engine
     - cat_water_dish
+    - doors_windows
 

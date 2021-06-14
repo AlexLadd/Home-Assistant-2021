@@ -77,7 +77,7 @@ class UPS(BaseApp):
     else:
       msg = f'APC UPS Status change from {old} -> {new}'
       self._logger.log(msg)
-      self.notifier.telegram_notify(msg, 'status', NOTIFY_TITLE)
+      # self.notifier.telegram_notify(msg, 'status', NOTIFY_TITLE)
 
 
   def _ups_status_unavailable_long_term(self, entity, attribute, old, new, kwargs):

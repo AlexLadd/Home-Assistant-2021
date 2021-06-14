@@ -136,7 +136,7 @@ class PC(BaseApp):
     Triggered when occupancy is switched 'on' -> 'off' """
     self._logger.log('Last person left, nobody home.', level='INFO')
     self.sm.lockdown_house()
-    self.sm.start_security_monitoring(start_offset=15)
+    self.sm.start_security_monitoring(start_offset=90)
 
 
   def _single_person_left(self, kwargs):

@@ -16,7 +16,7 @@ alarm:
   dependencies: 
     - notifier
     - custom_logger
-  logging_cutoff: INFO
+  logging_cutoff: DEBUG
 
   alarm_settings:
 

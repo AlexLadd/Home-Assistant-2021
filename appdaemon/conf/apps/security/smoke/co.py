@@ -9,7 +9,11 @@ from base_app import BaseApp
 import datetime
 from dateutil.relativedelta import relativedelta
 
+# Testing Notification Parameters
 MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING = 3
+TEST_NOTIFICATION_DAY = 1
+TEST_NOTIFICATION_HOUR = 19
+TEST_NOTIFICATION_MINUTE = 30
 
 UPSTAIRS_CO_DETECTOR = 'binary_sensor.upstairs_co_smoke_detector'
 
@@ -31,11 +35,12 @@ class CODetector(BaseApp):
       self.listen_state(self._smoke_detector_triggered_callback, detector, new='on')
 
     # Notify us to test smoke detectors every X number of months on the first day at 7:30PM
-    month_to_check = self.datetime().month % MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING * MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
-    if month_to_check == self.datetime().month and (self.datetime().day > 1 or (self.datetime().hour > 19 and self.datetime().minute > 30)):
-      self._logger.log(f'same month and before 7:30PM on the first day of the month')
+    month_to_check = int(self.datetime().month / MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING) * MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
+    if month_to_check == self.datetime().month and (self.datetime().day > TEST_NOTIFICATION_DAY or (self.datetime().hour > TEST_NOTIFICATION_HOUR and self.datetime().minute > TEST_NOTIFICATION_MINUTE)):
       month_to_check += MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
-    dt_notify = self.datetime().replace(month=month_to_check, day=1, hour=19, minute=30) 
+      month_to_check = month_to_check % 12
+      if month_to_check == 0: month_to_check = 1
+    dt_notify = self.datetime().replace(month=month_to_check, day=TEST_NOTIFICATION_DAY, hour=TEST_NOTIFICATION_HOUR, minute=TEST_NOTIFICATION_MINUTE) 
     three_months = dt_notify + relativedelta(months=MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING)
     seconds_next_three_months = (dt_notify - self.datetime()).total_seconds()
     self._next_smoke_detector_test_run_in = self.run_in(self._smoke_detector_periodic_test_notification, seconds_next_three_months)
