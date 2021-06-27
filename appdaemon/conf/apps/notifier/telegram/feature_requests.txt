@@ -155,3 +155,9 @@ Alex Move DW options to yaml config and validate? Door sensor, Screen door senso
 
   Alex: Add notification when doors are open when we go to sleep
   -> MAYBE_DONE - this might be added in security check after the new changes today
+
+2021-06-26, 02:34:23 Alex: add in a motion sensor check for last time the sensor was active and notify if it has been a very long time to change the batteries
+
+2021-06-26, 02:39:30 Alex: precip prob is 100 if it is raining currently
+
+2021-06-26, 11:54:29 Stephanie: change weekend morning message to play at 9 AM

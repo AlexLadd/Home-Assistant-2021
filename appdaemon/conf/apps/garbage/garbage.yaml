@@ -1,0 +1,9 @@
+
+garbage:
+  module: garbage
+  class: Garbage
+  dependencies: 
+    - custom_logger
+    - notifier
+  gmail_account: !secret gmail_account
+  gmail_password: !secret gmail_password

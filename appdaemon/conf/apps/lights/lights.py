@@ -175,7 +175,7 @@ class LightController(BaseApp):
   APP_SCHEMA = BaseApp.APP_SCHEMA.extend(LIGHT_SCHEMA)
 
   def setup(self):
-    self.listen_state(self.test, 'input_boolean.ad_testing_1')
+    # self.listen_state(self.test, 'input_boolean.ad_testing_1')
     # self.listen_state(self.test2, 'input_boolean.ad_testing_2')
     # self.listen_state(self.test3, 'input_boolean.ad_testing_3')
 
@@ -833,9 +833,9 @@ class Light:
     res = self.app.call_service(service, **kwargs)
     if not res:
       if service == 'light/turn_on' and (not self._is_on or not self._should_be_on):
-        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR', notify=False)
+        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}, state info: {self.app.get_state(kwargs["entity_id"], attribute="all")}', level='ERROR', notify=False)
       elif service == 'light/turn_off' and (self._is_on or self._should_be_on):
-        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}', level='ERROR', notify=False)
+        self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}, state info: {self.app.get_state(kwargs["entity_id"], attribute="all")}' , level='ERROR', notify=False)
   
     # Trying to track down why lights sometimes turn on dimmer than they should (very dim...)
     # if kwargs.get('brightness_pct', 1000) < 30 or kwargs.get('brightness', 1000) < 30:

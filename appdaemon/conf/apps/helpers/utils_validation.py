@@ -18,7 +18,6 @@ def parse_star_time(value):
   return res
 
 
-# UNTESTED!!!!!!!!!!!!
 def ensure_time(candidate):
   """ Validate and parse a time string of either %H:%M:%S or %H:%M """
   timeformat = "%H:%M:%S"
@@ -36,7 +35,7 @@ def ensure_time(candidate):
     # candidate is not a string
     raise vol.Invalid(f'Error parsing time: {candidate}')
 
-# UNTESTED!!!!!!!!!!!!
+
 def ensure_constraint_list(candidate):
   """Validate if a given object is a list of constraints. EX: light.test, ==, 'on'"""
   if candidate is None:
@@ -79,13 +78,14 @@ def entity_id_list(value):
       raise vol.Invalid(f"Invalid Entity-List: {value}")
   return value
 
+
 def log_level(value):
   """Validate if a log level."""
   if not value: 
     return None
 
   if not isinstance(value, str):
-    raise vol.Invalid(f"Invalid log level: {value}")
+    raise vol.Invalid(f"Log level must be a string: {value}")
 
   if value not in ['NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL']:
     raise vol.Invalid(f"Invalid Entity-List: {value}")
@@ -116,6 +116,7 @@ def try_parse_str(candidate):
     raise vol.Invalid(f'Invalid string: {candidate}')
     return None
 
+
 def try_parse_int(candidate):
   """
   Convert the given candidate to int. If it fails None is returned.
@@ -140,6 +141,7 @@ def try_parse_int(candidate):
     raise vol.Invalid(f'Invalid integer: {candidate}')
     return None
 
+
 def try_parse_float(candidate):
   """
   Convert the given candidate to int. If it fails None is returned.
@@ -163,6 +165,7 @@ def try_parse_float(candidate):
   except (ValueError, TypeError):
     raise vol.Invalid(f'Invalid float: {candidate}')
     return None
+
 
 def parse_duration_literal(literal):
   """
@@ -214,3 +217,4 @@ def parse_duration_literal(literal):
     if value is None or unit not in seconds_per_unit:
       raise TypeError("Interval '{}' is not a valid literal".format(literal))
     return value * seconds_per_unit[unit]
+

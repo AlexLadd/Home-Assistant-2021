@@ -125,3 +125,4 @@
 
 The master bedroom outside door notification should be disabled during the day when someone is home.
   -> DONE - Added sensor to both door and screen
+2021-06-21, 07:33:25 Stephanie: precipitation forecast was wrong on morning message

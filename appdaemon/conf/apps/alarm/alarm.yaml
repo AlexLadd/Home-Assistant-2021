@@ -44,6 +44,7 @@ alarm:
         armed_away: delayed_counter
       entrypoints:
         entity_id:
+          - binary_sensor.master_bedroom_outside_door_sensor
           - binary_sensor.master_bedroom_window_1_sensor
           - binary_sensor.master_bedroom_window_2_sensor
           - binary_sensor.master_bedroom_window_3_sensor
@@ -157,10 +158,10 @@ alarm:
         entity_id:
           - binary_sensor.hue_motion_kitchen_motion
           - binary_sensor.kitchen_pir_sensor
-          - binary_sensor.kitchen_door_window_sensor
         armed_away: delayed_counter
       entrypoints:
         entity_id:
+          - binary_sensor.kitchen_door_window_sensor
           - binary_sensor.kitchen_window_1_sensor
           - binary_sensor.kitchen_window_2_sensor
         armed_away: delayed_timer, 5
@@ -190,6 +191,15 @@ alarm:
         entity_id:
           - binary_sensor.basement_storage_pir_sensor
         armed_away: delayed_counter
+
+    basement_rec_room:
+      entrypoints:
+        entity_id:
+          - binary_sensor.basement_patio_door_sensor
+        armed_away: delayed_timer, 5
+        armed_home: delayed_timer, 5
+        armed_night: delayed_timer, 5
+        
 
 
 

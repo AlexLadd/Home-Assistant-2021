@@ -85,15 +85,13 @@ class DailyRoutines(BaseApp):
 
 
   def _dark_mode_on(self, kwargs):
-    self._logger.log(f'Checking if dark_mode should be turned on now.')
-    self._test_sun_rise_down_times()
+    # self._test_sun_rise_down_times()
     if self.get_state(self.const.DARK_MODE_BOOLEAN) == 'off':
       self._logger.log('Dark mode turned on.')  
       self.turn_on(self.const.DARK_MODE_BOOLEAN)
 
 
   def _dark_mode_off(self, kwargs):
-    self._logger.log(f'Checking if dark_mode should be turned off now.')
     if self.get_state(self.const.DARK_MODE_BOOLEAN) == 'on':
       self._logger.log('Dark mode turned off.')
       self.turn_off(self.const.DARK_MODE_BOOLEAN)

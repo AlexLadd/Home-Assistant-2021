@@ -8,6 +8,7 @@ import datetime
 import os
 import re
 from functools import wraps
+import dateutil
 
 from const import (DARK_MODE_BOOLEAN,
                   WINTER_MONTH_START, WINTER_MONTH_END, AC_MONTH_START, AC_MONTH_END,
@@ -72,6 +73,7 @@ seasons = [('winter', (datetime.date(2000,  1,  1),  datetime.date(2000,  3, 20)
            ('summer', (datetime.date(2000,  6, 21),  datetime.date(2000,  9, 22))),
            ('autumn', (datetime.date(2000,  9, 23),  datetime.date(2000, 12, 20))),
            ('winter', (datetime.date(2000, 12, 21),  datetime.date(2000, 12, 31)))]
+
 def get_season(now=None):
   """ Return current season as a string """
   if now is None:
@@ -124,6 +126,31 @@ def is_weekday():
   day = datetime.datetime.now().weekday()
   return bool(day != 5 and day != 6)
 
+
+def next_weekday(d, day):
+  """ Return datetime of the next weekday using the current date (d)
+  # lambda version: onDay = lambda date, day: dt + datetime.timedelta(days=(day-dt.weekday())%7)
+
+  :param d: datetime.date or datetime, start date object
+  :param day: int, next week day to match (0-Mon, 6-Sun)
+  """
+  return  d + datetime.timedelta(days=(day - d.weekday()) % 7)
+
+
+def string_contains_date(string):
+  """
+  Checks if a string contains a valid date/time
+
+  :param string: str, string to check for date
+  Return: str, the valid date/time if it exists else ''
+  """
+  try: 
+    dateutil.parser.parse(string, fuzzy=False)
+    return string
+  except ValueError:
+    if len(string.split(' ')) <= 3:
+      return ''
+    return string_contains_date(string.rsplit(' ', 1)[0])
 
 
 #       **********  OS Path Related Functions **********
