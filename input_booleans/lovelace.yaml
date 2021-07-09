@@ -1,0 +1,4 @@
+
+climate_advisories_lovelace_dummy:
+  name: Lovelace Climate Advisories Dummy
+  icon: mdi:weather-night

@@ -35,7 +35,7 @@ class AlarmController(BaseApp):
     if not self.presence.occupancy and self.alarm.disarmed:
       msg = 'The alarm was disarmed while nobody is home. Please have a look.'
       self._logger.log(msg, level='WARNING')
-      self.notifier.html5_notify(NOTIFY_TARGET, msg, NOTIFY_TITLE)
+      self.notifier.telegram_notify(msg, NOTIFY_TARGET, title=NOTIFY_TITLE)
 
 
   def test(self, entity, attribute, old, new, kwargs):

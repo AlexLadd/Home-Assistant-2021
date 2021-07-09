@@ -21,4 +21,5 @@ sleep_controller:
     - spotify_engine
     - cat_water_dish
     - doors_windows
+    - dehumidifier
 

@@ -39,21 +39,18 @@ class SmartClimate(BaseApp):
     self._last_ac_mode = self.climate.ac_mode
     self._last_heat_mode = self.climate.heat_mode
 
-    # self.handle_windows = None
-    # self._notifying_windows_open = False
+    self._handle_turn_fan_on = None
 
     self.listen_state(self._automated_hvac_mode_callback, AUTOMATED_HVAC_MODE_BOOLEAN)
     self.listen_state(self._ac_mode_callback, AC_MODE_BOOLEAN)
     self.listen_state(self._heat_mode_callback, HEAT_MODE_BOOLEAN)
 
-    # self.listen_state(self._heat_mode_state_change_notify, 'input_boolean.heat_mode')
-    # self.listen_state(self._ac_mode_state_change_notify, 'input_boolean.ac_mode')
     # self.listen_state(self._windows_closed, 'group.door_window_sensors_master', new='off')
     # self.listen_state(self._windows_open, 'group.door_window_sensors_master', new='on', duration=DOOR_WINDOW_OPEN_TRIGGER_TIME)
 
     # run once per hour, on the hour
     self.run_hourly(self._hvac_algo, datetime.time(0,0,0))
-
+    self._hvac_algo()
     # Check for open windows on AD restart while the furnace is running (AC/Heat)
     # if self.dw.is_open() and self.climate.hvac_state != 'off':
     #   self._windows_open(None, None, None, 'on', None)
@@ -117,21 +114,22 @@ class SmartClimate(BaseApp):
 
     if self.climate.ac_mode and self.sleep.everyone_asleep:
       return
-    elif 3 < datetime.datetime.now().hour < 12 and self.climate.todays_high > 27:
+    elif 3 < datetime.datetime.now().hour < 12 and self.climate.todays_high and self.climate.todays_high > 27:
       self.climate.set_ac_mode('on')
     elif datetime.datetime.now().hour >= 17:
-      if self.climate.tomorrows_high > 27:
-        if self.climate.todays_low > 20:
+      if self.climate.tomorrows_high and self.climate.tomorrows_high > 27:
+        if self.climate.todays_low and self.climate.todays_low > 20:
           self.climate.set_ac_mode('on')
-        elif self.climate.ac_mode and self.climate.current_outdoor_temp > 23: 
+        elif self.climate.ac_mode and self.climate.current_outdoor_temp and self.climate.current_outdoor_temp > 23: 
           # this does nothing but keep the ac on
           return
-        elif self.climate.current_outdoor_temp > 25: # TODO: add in indoor temp checks here
+        elif self.climate.current_outdoor_temp and self.climate.current_outdoor_temp > 25: # TODO: add in indoor temp checks here
           self.climate.set_ac_mode('on')
         else:
           self.climate.set_ac_mode('off')
       else:
-        if self.climate.current_outdoor_temp < 23 and self.climate.todays_low < 20:
+        if self.climate.current_outdoor_temp and self.climate.current_outdoor_temp < 23 and \
+            self.climate.todays_low and self.climate.todays_low < 20:
           self.climate.set_ac_mode('off')
 
 
@@ -157,10 +155,30 @@ class SmartClimate(BaseApp):
       if self.climate.todays_low < -2 and self.climate.tomorrows_high < 2:
         self.climate.set_heat_mode('on')
 
-    if self.climate.average_indoor_temp < 15:
+    if self.climate.average_indoor_temp and self.climate.average_indoor_temp < 15:
       self.climate.set_heat_mode('on')
-    elif self.climate.current_outdoor_temp > 2 and self.climate.todays_low > 4:
+    elif self.climate.current_outdoor_temp and self.climate.current_outdoor_temp > 2 and \
+        self.climate.todays_low and self.climate.todays_low > 4:
       self.climate.set_heat_mode('off')
+
+
+  def _turn_on_fan(self, heat_temp=None, ac_temp=None):
+    """ Heat or AC must be on for the fan to be running """
+
+
+    if heat_temp is None and ac_temp is None:
+      self.climate.set_hvac_heat(temperature=EMERGENCY_LOW_TEMP_CUTOFF)
+    elif ac_temp is None:
+      self.climate.set_hvac_heat(temperature=heat_temp)
+    elif heat_temp is None:
+      self.climate.set_hvac_ac(temperature=ac_temp)
+
+    self.climate.set_fan_mode('on')
+
+    # if self._handle_turn_fan_on is not None:
+    #   self.cancel_timer(self._handle_turn_fan_on)
+    #   self._handle_turn_fan_on = None
+    # self._handle_turn_fan_on = self.run_in(lambda *_: self.climate.set_fan_mode('on'), 1)
 
 
   def _hvac_algo(self, entity=None, attribute=None, old=None, new=None, kwargs=None):
@@ -225,6 +243,19 @@ class SmartClimate(BaseApp):
           else:
             self._logger.log(f'Setting thermostat to AC mode.', level='DEBUG')
             self.climate.set_hvac_ac(temperature=self.get_ac_temp())
+
+        # This is the last check before turning everything off
+        elif self.now_is_between('17:00:00', '04:00:00') and self.presence.someone_home and self._warm_upstairs():
+          if not self.dw.windows_closed and self.climate.hvac_fan_state != "on":
+            msg = f'The furnace fan is turning on to cool down the master bedroom before bed but there are some windows open.'
+            self.notifier.tts_notify(msg)
+            log_msg = f'{msg} Open windows: {self.dw.entry_point_check(door_check=False)}'
+            self.notifier.telegram_notify(log_msg)
+            self._logger.log(log_msg, level='INFO')
+          self._logger.log(f'Turning furnace fan on to cool house before bed.', level='DEBUG')
+          self._turn_on_fan()
+
+        # Nothing to do... turning system off
         else:
           self._logger.log(f'Turning HVAC off.', level='DEBUG')
           self.climate.set_hvac_off()
@@ -238,22 +269,26 @@ class SmartClimate(BaseApp):
         self.climate.set_hvac_ac(temperature=self.get_ac_temp())
 
 
+  def _warm_upstairs(self):
+    """ Return True if it is warm upstairs """
+    upstairs_temp_threshold = 20
+    if self.climate.average_indoor_temp is not None and self.climate.average_indoor_temp > upstairs_temp_threshold:
+      return True
+    elif self.climate.study_temp is not None and self.climate.study_temp > upstairs_temp_threshold:
+      return True
+    elif self.climate.master_bedroom_temp is not None and self.climate.master_bedroom_temp > upstairs_temp_threshold:
+      return True
+    else:
+      return False
+
+
   def terminate(self):
     pass
 
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing climate_controller Module: ')
-    # self._logger.log(f'Average indoor temp: {self.climate.average_indoor_temp}')
-
-    # self._logger.log(f'is_winter_months: {is_winter_months} ({is_winter_months()})')
-
-    # w = self.get_state('weather.home', attribute='all')['attributes']['forecast'][0]['templow']
-
-    self._hvac_algo(None, None, None, None, None)
-
-    t = self.climate.average_indoor_temp
-    self._logger.log(f'Average indoor temp: {t}')
+    self._turn_on_fan()
 
 
 

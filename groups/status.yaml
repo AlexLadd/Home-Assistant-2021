@@ -1,4 +1,30 @@
 
+# UNFI Sensors
+
+unifi_status_sensors:
+  name: "Unifi Status Sensors"
+  entities:
+    - sensor.unifi_gateway_wlan
+    - sensor.unifi_gateway_wan
+    - sensor.unifi_gateway_lan
+    - sensor.unifi_gateway_www
+    - sensor.unifi_gateway_vpn
+    - sensor.unifi_gateway_firmware_upgradable
+    - sensor.unifi_gateway_alerts
+
+
+# NUC Sneoesr
+
+nuc_status_sensors:
+  name: "NUC Status Sensors"
+  entities:
+    - sensor.last_boot
+    - sensor.memory_use_percent
+    - sensor.disk_use_percent
+    - sensor.processor_use_percent
+    - sensor.processor_temperature
+
+
 # Status Sensors:
 
 status_sensors_master:
@@ -8,6 +34,8 @@ status_sensors_master:
     - binary_sensor.updater
     - sensor.ups_status
     - sensor.ups_status_data
+    - sensor.unifi_gateway_lan
+    - sensor.unifi_gateway_wan
     - binary_sensor.sonoff_rf_bridge_status
     - binary_sensor.sonoff_rf_bridge_2_status
     - binary_sensor.sonoff_rf_bridge_3_status
@@ -51,3 +79,13 @@ household_status_master:
     - sun.sun
     - sensor.holiday
     - sensor.season
+
+
+active_devices_master:
+  name: "Active Devices"
+  entities:
+    - group.lights_master
+    - group.exhaust_fans_master
+    # - group.ceiling_fans_master
+    - binary_sensor.octoprint_printing
+    - sensor.ups_status

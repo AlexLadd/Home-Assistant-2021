@@ -63,35 +63,35 @@ class ThreeDPrinter(BaseApp):
   def target_bed_temp(self):
     try:
       return float(self.get_state(TARGET_BED_TEMP_SENSOR))
-    except ValueError:
+    except (ValueError, TypeError):
       return 0.0
 
   @property
   def target_tool_temp(self):
     try:
       return float(self.get_state(TARGET_TOOL_TEMP_SENSOR))
-    except ValueError:
+    except (ValueError, TypeError):
       return 0.0
 
   @property
   def bed_temp(self):
     try:
       return float(self.get_state(ACTUAL_BED_TEMP_SENSOR))
-    except ValueError:
+    except (ValueError, TypeError):
       return 0.0
 
   @property
   def tool_temp(self):
     try:
       return float(self.get_state(ACTUAL_TOOL_TEMP_SENSOR))
-    except ValueError:
+    except (ValueError, TypeError):
       return 0.0
   
   @property
   def job_percentage(self):
     try:
       return float(self.get_state(PRINTER_PERCENT_COMPLETE))
-    except ValueError:
+    except (ValueError, TypeError):
       return 0.0
 
   @property
@@ -99,7 +99,7 @@ class ThreeDPrinter(BaseApp):
     """ Time the print has been going in seconds """
     try:
       return float(self.get_state(TIME_ELAPSED))
-    except ValueError:
+    except (ValueError, TypeError):
       return -99
 
   @property
@@ -107,7 +107,7 @@ class ThreeDPrinter(BaseApp):
     """ Time the print has left in seconds """
     try:
       return float(self.get_state(PREDICTED_TIME_REMAINING))
-    except ValueError:
+    except (ValueError, TypeError):
       return -99
 
   @property

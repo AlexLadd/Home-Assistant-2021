@@ -32,10 +32,6 @@ alex_morning_greeting_complete_today:
   name: Alexs Morning Greeting Complete Today
 
 # Device trackers for usage
-dishwasher_in_use:
-  name: Dishwasher in Use
-  icon: mdi:dishwasher
-
 master_shower_in_use:
   name: Master Shower in Use
   icon: mdi:shower-head
@@ -56,6 +52,12 @@ washing_machine_in_use:
 dryer_in_use:
   name: Dryer in Use
   icon: mdi:tumble-dryer
+dishwasher_in_use:
+  name: Dishwasher in Use
+  icon: mdi:dishwasher
+dehumidifier_in_use:
+  name: Dehumidifier in Use
+  icon: mdi:water-percent-alert
 
 security_monitoring_is_on:
   name: Security Monitoring is On

@@ -206,13 +206,20 @@ class Climate(BaseApp):
       return self.utils.get_last_valid_state(self, "sensor.wupws_heatindex", 'unknown')
 
   @property
-  @up_to_date_wrapper('sensor.wupws_precip_chance_1d', 60*8)
+  @up_to_date_wrapper('sensor.wupws_precip_chance_1d', 60*30)
   def precip_chance_today(self):
     # % chance of precipitation today
     try:
       return int(float(self.get_state('sensor.wupws_precip_chance_1d')))
     except ValueError:
-      return self.utils.get_last_valid_state(self, "sensor.wupws_precip_chance_1d", 'unknown')
+      # If it is currently raining than its 100%
+      try:
+        if self.current_precip_rate > 0:
+          return 100
+        else:
+          return self.utils.get_last_valid_state(self, "sensor.wupws_precip_chance_1d", 'unknown')
+      except TypeError:
+        return self.utils.get_last_valid_state(self, "sensor.wupws_precip_chance_1d", 'unknown')
 
   @property
   @up_to_date_wrapper('sensor.wupws_precip_1d', 60*8)
@@ -376,9 +383,17 @@ class Climate(BaseApp):
       return None
 
   @property
+  def basement_storage_humidity(self):
+    try:
+      return int(float(self.get_state('sensor.basement_storage_temperature_and_humitidy_sensor_humidity')))
+    except ValueError:
+      return None
+
+  @property
   def average_indoor_humidity(self):
     try:
-      hum = [self.entryway_humidity, self.master_bathroom_humidity, self.living_room_humidity]
+      hum = [self.entryway_humidity, self.master_bathroom_humidity, self.living_room_humidity, self.basement_storage_humidity]
+      hum = [x for x in hum if x is not None]
       return int(sum(hum)/len(hum))
     except TypeError:
       return None
@@ -438,6 +453,7 @@ class Climate(BaseApp):
   def average_indoor_light_level(self):
     try:
       temps = [self.study_light_level, self.master_bathroom_light_level, self.master_bedroom_light_level, self.living_room_light_level, self.kitchen_light_level]
+      temps = [x for x in temps if x is not None]
       return int(sum(temps)/len(temps))
     except TypeError:
       return None
@@ -526,10 +542,11 @@ class Climate(BaseApp):
 
 
   def _set_hvac_state(self, hvac_state):
-    """ Set the themostat's operation mode [heat, off] """
+    """ Set the themostat's operation mode [heat, off] - No AC currently """
     if self.hvac_preset_mode not in ['none', 'None']:
-      self._logger.log(f'Setting HVAC state while the preset mode is not set to "none" ({self.hvac_preset_mode}, type: {type(self.hvac_preset_mode)}), turning off preset mode now.')
-      self._set_hvac_preset_mode('off')
+      self._logger.log(f'Setting HVAC state while the preset mode is not set to "none" (current mode: {self.hvac_preset_mode}, type: {type(self.hvac_preset_mode)}), turning off preset mode now.')
+      # self._set_hvac_preset_mode('off')
+      self._set_hvac_preset_mode('none')
 
     if hvac_state == self.hvac_state:
         return
@@ -577,7 +594,7 @@ class Climate(BaseApp):
   def set_fan_mode(self, fan_mode):
     """ Set HVAC fan mode [on, off] """
     if fan_mode not in ['on', 'off'] or fan_mode == self.hvac_fan_state:
-      self._logger.log(f'Attemped to change HVAC fan mode but the current state ("{self.hvac_fan_state}"") is the same as the requests state ("{fan_mode}").', 'DEBUG')
+      self._logger.log(f'Attemped to change HVAC fan mode but the current state ("{self.hvac_fan_state}") is the same as the requests state ("{fan_mode}").', 'DEBUG')
       return
     
     self._logger.log('Setting HVAC fan mode to "{}"'.format(fan_mode))
@@ -628,8 +645,8 @@ class Climate(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing climate module: ')
-    self._outdoor_sensor_tests()
-    # self._indoor_sensor_tests()
+    # self._outdoor_sensor_tests()
+    self._indoor_sensor_tests()
     # self._thermostat_tests()
 
 
@@ -664,6 +681,7 @@ class Climate(BaseApp):
     self._logger.log(f'Entryway humidity: {self.entryway_humidity}')
     self._logger.log(f'Master bedroom humidity: {self.master_bathroom_humidity}')
     self._logger.log(f'Living room humidity: {self.living_room_humidity}')
+    self._logger.log(f'Basement storage humidity: {self.basement_storage_humidity}')
     self._logger.log(f'Average humdity: {self.average_indoor_humidity}')    
 
     self._logger.log(f'Study light level: {self.study_light_level}')    

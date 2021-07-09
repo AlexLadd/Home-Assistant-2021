@@ -40,6 +40,9 @@ class LivingRoomTV(BaseApp):
     self.listen_state(self._living_room_tv_state_change, LIVING_ROOM_TV)
     self.listen_state(self._dark_mode_on, self.const.DARK_MODE_BOOLEAN, new='on')
 
+  @property
+  def tv_name(self):
+    return 'living_room_tv'
 
   @property
   def state(self):

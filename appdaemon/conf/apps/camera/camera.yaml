@@ -1,0 +1,22 @@
+
+camera:
+  module: cc
+  class: CameraController
+  dependencies:
+    - custom_logger
+    - notifier
+    - presence
+    - living_room_tv
+  settings:
+    front_porch:
+      entity_id: camera.carport
+      host: '192.168.0.36'
+      port: 88
+      username: !secret carport_camera_username
+      password: !secret carport_camera_password
+      video_folder: '/hass/appdaemon/conf/media/videos/carport/'
+      picture_folder: '/hass/appdaemon/conf/media/pictures/carport/'
+      location: 'Front Porch'
+      use_motion: False
+      defaults:
+        default_preset: 'scene01'

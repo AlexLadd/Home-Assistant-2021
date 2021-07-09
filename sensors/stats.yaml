@@ -1,7 +1,33 @@
 
         ##########################################################
-        ## Average Household Light Level
+        ## Unifi Attributes Exposed
         ##########################################################
+
+- platform: template
+  sensors:
+    unifi_upload_speed_test:
+      friendly_name: 'Unifi Upload Speed Test'
+      unit_of_measurement: Mbit/s
+      value_template: "{{ state_attr('sensor.unifi_gateway_www', 'xput_down') }}"
+
+- platform: template
+  sensors:
+    unifi_download_speed_test:
+      friendly_name: 'Unifi Download Speed Test'
+      unit_of_measurement: Mbit/s
+      value_template: "{{ state_attr('sensor.unifi_gateway_www', 'xput_up') }}"
+
+- platform: template
+  sensors:
+    unifi_ping_speed_test:
+      friendly_name: 'Unifi Ping Speed Test'
+      unit_of_measurement: ms
+      value_template: "{{ state_attr('sensor.unifi_gateway_www', 'speedtest_ping') }}"
+
+
+##########################################################
+## Average Household Levels
+##########################################################
 
 - platform: min_max
   name: 'Average Light Level'
@@ -15,3 +41,64 @@
 
     # - sensor.living_room_motion_sensor_luminance
     # - sensor.master_bathroom_motion_sensor_luminance
+
+- platform: min_max
+  name: 'Average Indoor Humidity'
+  type: mean
+  round_digits: 0
+  entity_ids:
+    - sensor.entryway_humidity
+    - sensor.master_bathroom_motion_sensor_relative_humidity
+    - sensor.living_room_motion_sensor_relative_humidity
+    - sensor.basement_storage_temperature_and_humitidy_sensor_humidity
+
+
+- platform: min_max
+  name: 'Average Indoor Temperature'
+  type: mean
+  round_digits: 0
+  entity_ids:
+    - sensor.hue_motion_study_temperature
+    - sensor.hue_motion_study_2_temperature
+    - sensor.hue_motion_kitchen_temperature
+    - sensor.hue_motion_master_bedroom_temperature
+    - sensor.entryway_temperature
+    - sensor.master_bathroom_motion_sensor_temperature
+    - sensor.living_room_motion_sensor_temperature
+    - sensor.basement_storage_temperature_and_humitidy_sensor_temperature
+
+
+        ##########################################################
+        ## NUC Sensors
+        ##########################################################
+
+- platform: systemmonitor
+  resources:
+    - type: disk_use_percent
+    - type: memory_use_percent
+    - type: processor_use
+    - type: processor_temperature
+    - type: last_boot
+
+
+        ##########################################################
+        ## UNIFI Sensor
+        ##########################################################
+
+- platform: unifigateway
+  host: !secret unifi_controller_host_ip # localhost 
+  port: 443
+  version: UDMP-unifiOS
+  username: !secret unifi_controller_username
+  password: !secret unifi_controller_password
+  monitored_conditions:
+      - vpn
+      - lan
+      - wan
+      - www
+      - wlan
+      - alerts
+      - firmware
+
+
+

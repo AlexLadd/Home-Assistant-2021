@@ -20,7 +20,7 @@ class TTS(BaseApp):
     self.debug_level = 'DEBUG'
     self.tts_playing = False                # TTS announcement is playing
     self.spotify_paused = False             # Spotify song paused for TTS
-    self.previous_spotify_volume = 0        # Previous Spotify speaker volume level
+    self.previous_spotify_volume = 0        # Previous Spotify speaker volume level 
     self.tts_messages = []                  # List of queued TTS messages as dictionaries
     self.tts_lock = threading.Lock()        # TTS lock
     

@@ -1,0 +1,8 @@
+
+turn_all_lights_off:
+  alias: Turn All Lights Off
+  sequence:
+    - service: homeassistant.turn_off
+      target:
+        entity_id: group.lights_master
+  mode: parallel

@@ -7,3 +7,4 @@ garbage:
     - notifier
   gmail_account: !secret gmail_account
   gmail_password: !secret gmail_password
+  logging_cutoff: INFO

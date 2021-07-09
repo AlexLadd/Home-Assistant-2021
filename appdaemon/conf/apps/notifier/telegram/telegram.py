@@ -76,15 +76,19 @@ class Telegram(BaseApp):
   def _reporting_text_processing(self, event_name, data, kwargs):
     """ Handle bug reports and feature requests here """
     msg = chat_id = data.get('text', 'Unknown Telegram Message...')
+    chat_id = data.get('chat_id', CHATS['logging'])
+    person = data.get('from_first', 'Unknown')
     self._logger.log(f'Report text processing recieved a message: {msg}')
 
     # Save feature requests
     if msg.lower().startswith(FEATURE_REQUEST_TEXT_KEY.lower()):
       self._save_request_to_log(FEATURE_REQUEST_TEXT_KEY, FEATURE_REQUEST_FILE, msg, data['from_first'])
+      self.telegram_notify(f'Thank you for the feature request {person}.', chat_id)
 
     # Save bug reports
     if msg.lower().startswith(BUG_REPORT_TEXT_KEY.lower()):
       self._save_request_to_log(BUG_REPORT_TEXT_KEY, BUG_REPORT_FILE, msg, data['from_first'])
+      self.telegram_notify(f'Thank you for the bug report {person}.', chat_id)
 
 
   def _save_request_to_log(self, request_key, path, msg, user):

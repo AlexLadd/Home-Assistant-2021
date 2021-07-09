@@ -4,6 +4,8 @@ import datetime
 import random
 import requests
 import json
+import concurrent
+import random
  
 
 # TODO: 
@@ -58,35 +60,56 @@ class SpotifyEngine(BaseApp):
     self.play_song(track, media_player, volume, speaker_override)
 
 
-  def play_song(self, song, media_player, volume=None, speaker_override=False, offset=None):
+  def play_song(self, song, media_player, volume=None, speaker_override=False, offset=0, repeat=False, shuffle=True, random_song=True):
     """ Top level call - Prevent the thread from being held up by the long spotify play call """
-    self.run_in(lambda *_: self._play_song(song, media_player, volume, speaker_override, offset), 0)
+    self.run_in(lambda *_: self._play_song(song, media_player, volume, speaker_override, offset, repeat, shuffle, random_song), 0)
 
-  def _play_song(self, song, media_player, volume=None, speaker_override=False, offset=None):
+  def _play_song(self, song, media_player, volume=None, speaker_override=False, offset=0, repeat=False, shuffle=True, random_song=True):
     """ 
     Core method to play spotify song on a given media_player 
     param song: Spotify song uri or a dictionary used to make a recommendation
     param speaker_override: Play music on speaker even if it is in use
-    param offset: Provide offset as an int or track uri to start playback at a particular offset.
+    param offset: int, Provide offset as an int or track uri to start playback at a particular offset.
+    param repeat: string, repeat mode such at 'track', 'etc'
+    param shuffle: boolean, set playlist or album shuffle to on/off
+    param random_song: boolean, start album or playlist at a random part
     """
     entity_id = self.mp.map_speaker_to_entity(media_player)
     if not entity_id or not self.mp.validate_media_players(entity_id):
       self._logger.log('Invalid spekaer: "{}", no song will play.'.format(media_player), level='ERROR')
       return
     if (self.mp.is_playing(entity_id) or self.sc.active_device_entity_id == entity_id) and not speaker_override:
-      self._logger.log('["{}"] ("{}") Speaker is in use, the spotify song ("{}") will not play.'.format(media_player, entity_id, song), level='INFO')
+      self._logger.log('["{}"] ("{}") Speaker is in use, the spotify song ("{}") will not play. Use speaker_override=True to skip this.'.format(media_player, entity_id, song), level='INFO')
       return
 
     if isinstance(song, dict):
       song = self.sc.get_recommendation(song)
-      self._logger.log('Song recommendation: {}'.format(song))
+      # self._logger.log('Song recommendation: {}'.format(song))
     else:
       song = self._map_song(song)
+
+    # Cannot play lists of song using spotcast like our old system
+    if isinstance(song, list):
+      if offset and offset < len(song):
+        song = song[offset]
+      elif random_song:
+        song = song[random.randint(0,len(song)-1)]
+      else:
+        song = song[0]
+    elif song is None or song == '':
+      self._logger.log(f'No song was passed in: {song}')
+      return
 
     # Spotify song volume is loader than TTS
     vol = volume if volume else self.mp.default_volume(entity_id)
     self.mp.set_volume(entity_id, vol) 
-    self.sc.play(entity_id, song, offset)
+    # self.sc.play(entity_id, song, offset)
+    song_info = self.sc.get_track_info(song)
+    self._logger.log(f'Using Spotcast to play Spotify media_player: {entity_id}, track info: {song_info}, offset: {offset}, repeat: {repeat}, shuffle: {shuffle}, random_song: {random_song}')
+    try:
+      self.call_service('spotcast/start', entity_id=entity_id, uri=song, offset=offset, repeat=repeat, shuffle=shuffle, random_song=random_song)
+    except concurrent.futures._base.TimeoutError:
+      self._logger.log(f'Getting the usual spotcast timeout error...')
 
 
   def stop_music(self):
@@ -110,11 +133,17 @@ class SpotifyEngine(BaseApp):
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing spotify_engine Module: ')
 
-    device_name = 'Master Bedrdoom Speaker'
+    device_name = 'master_bedroom_speaker'
+    # device_name = 'media_player.d5739709_de9b747a'
     uri = 'spotify:album:1ohdh4vzVUXhtaE04cHvle'
+    uri = {'artist':'blink 182'}
     rng_start = True
 
-    self.call_service('spotcast/start', device_name=device_name, uri=uri, random_song=rng_start)
+    # self.call_service('spotcast/start', device_name=device_name, uri=uri, random_song=rng_start)
+
+    # self.play_song(uri, media_player=device_name, random_song=True, speaker_override=True)
+    # self.play_random_steph(device_name)
+    self.play_random_alex(device_name)
 
     # services = self.list_services()
     # self._logger.log(f'Services: {services}')

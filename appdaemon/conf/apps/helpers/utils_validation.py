@@ -5,6 +5,7 @@ Utility functions for voluptuous validation
 
 import voluptuous as vol
 import datetime
+import os
 
 def parse_star_time(value):
   try:
@@ -77,6 +78,27 @@ def entity_id_list(value):
     if "." not in item:
       raise vol.Invalid(f"Invalid Entity-List: {value}")
   return value
+
+
+def ensure_abs_path(value):
+  """Validate if a given object is an entity id."""
+  if not value or value is None or not os.path.isabs(value):
+    raise vol.Invalid(f"Path must be an absolute path string. Path: {value}")
+  return value
+
+
+def ensure_ip_address(candidate):
+  """ Ensure input in an IP addres - Example 192.168.1.1"""
+  try:
+      t = candidate.split('.')
+      if len(t) == 4:
+        for p in t:
+          x = int(p)
+        return candidate
+      else:  
+        raise vol.Invalid(f"ensure_ip_address failed becaise it does not have 4 parts: {candidate}")
+  except ValueError:
+    raise vol.Invalid(f'Error parsing IP address: {candidate}')
 
 
 def log_level(value):

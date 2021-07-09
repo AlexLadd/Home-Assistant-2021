@@ -444,21 +444,13 @@ class SpotifyClient(BaseApp):
       if not self._register_spotify_on_cast_device(device_name):
         # Failed to connect Spotify to Chromecast
         self._logger.log(f'Failed to find a Spotify Chromecast device with the name "{device_name}"')
-        # return None     # TODO: REMOVED TO TEST SPOTCAST DIRTY FIX
+        return None 
 
       # Look for our device again
       dev_id = self._search_spotify_for_device(device_name)
 
     if dev_id is None:
       self._logger.log(f'Failed to find a Spotify device with the name "{device_name}"')
-
-      # TODO: THIS IS A DIRTY FIX FROM SPOTCAST!!!!!!!!!!!!!! UNTESTED AND MIGHT BREAK THINGS....
-      cast_sc = SpotifyController(self._access_token, self._token_expires)
-      self._logger.log(f'Using the spotcast "Dirty Fix": spotifyController.device. cast_sc: {cast_sc} Result: {cast_sc.device}')
-      self._logger.log(f'self.sp.devices(): {self.sp.devices()}')
-      if cast_sc.device:
-        self._logger.log(f'Using the spotcast "Dirty Fix": spotifyController.device. Result: {cast_sc.device}', level='WARNING')
-        return cast_sc.device
 
     return dev_id
 

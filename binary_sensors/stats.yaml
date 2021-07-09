@@ -1,0 +1,49 @@
+
+
+
+        ##########################################################
+        ## Unifi Attributes Exposed
+        ##########################################################
+
+- platform: template
+  sensors:
+    unifi_status_speed_test:
+      friendly_name: 'Unifi Status Speed Test'
+      value_template: >
+        {% set status = state_attr('sensor.unifi_gateway_www', 'speedtest_status') %}
+        {% if status == 'Success' %} true 
+        {% else %} false {% endif %}
+
+
+##########################################################
+## RF Status of all bridges in one for Lovelace UI
+##########################################################
+
+- platform: template
+  sensors:
+    rf_bridges_status:
+      friendly_name: RF Bridges Status
+      device_class: connectivity
+      value_template: >
+        {% set rf_1 = states('binary_sensor.sonoff_rf_bridge_status') %}
+        {% set rf_2 = states('binary_sensor.sonoff_rf_bridge_2_status') %}
+        {% set rf_3 = states('binary_sensor.sonoff_rf_bridge_2_status') %}
+        {% set rf_4 = states('binary_sensor.sonoff_rf_bridge_2_status') %}
+        {% if rf_1 == 'on' and rf_2 == 'on' and rf_3 == 'on'and rf_4 == 'on' %} true 
+        {% else %} false {% endif %}
+
+
+##########################################################
+## Broadlink Status of all devices in one for Lovelace UI
+##########################################################
+
+- platform: template
+  sensors:
+    broadlinks_status:
+      friendly_name: Broadlinks Status
+      device_class: connectivity
+      value_template: >
+        {% set bl_1 = states('sensor.living_room_broadlink') %}
+        {% set bl_2 = states('sensor.master_broadlink') %}
+        {% if bl_1 == 'on' and bl_2 == 'on' %} true 
+        {% else %} false {% endif %}

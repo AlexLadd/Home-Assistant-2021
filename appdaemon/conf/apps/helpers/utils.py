@@ -66,6 +66,21 @@ def json_pretty_print(data, logger, sort_keys=False):
   logger.log((json.dumps(data, indent=4, sort_keys=sort_keys)))
 
 
+directions = {
+  'N': 'north',
+  'NE': 'north east',
+  'E': 'east',
+  'SE': 'south east',
+  'S': 'south',
+  'SW': 'south west',
+  'W': 'west',
+  'NW': 'north west',
+}
+
+def convert_dir_to_string(direction):
+  return directions.get(direction.upper(), direction)
+
+
 #       **********  Time Related Functions **********
 
 seasons = [('winter', (datetime.date(2000,  1,  1),  datetime.date(2000,  3, 20))),

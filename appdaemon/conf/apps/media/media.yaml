@@ -1,7 +1,7 @@
 
 
 living_room_tv:
-  module: tv
+  module: living_room_tv
   class: LivingRoomTV
   dependencies:
     - custom_logger
@@ -29,7 +29,7 @@ speakers:
       friendly_name: Master Bedroom Speaker
       entity_id: media_player.master_bedroom_speaker
       is_group: False
-      default_volume: 0.30
+      default_volume: 0.40
       speaker_disable_states: input_boolean.ad_testing_2, ==, off
 
     master_bathroom:
@@ -41,7 +41,7 @@ speakers:
         - upstairs_bathroom_speaker
       entity_id: media_player.master_bathroom_speaker
       is_group: False
-      default_volume: 0.30
+      default_volume: 0.40
 
     kitchen:
       aliases:
@@ -49,7 +49,7 @@ speakers:
         - kitchen speaker
       entity_id: media_player.kitchen_speaker
       is_group: False
-      default_volume: 0.30
+      default_volume: 0.40
 
     living_room:
       aliases:
@@ -62,7 +62,7 @@ speakers:
         - family room
       entity_id: media_player.family_room_speaker
       is_group: False
-      default_volume: 0.30
+      default_volume: 0.40
 
     basement_storage:
       aliases:
@@ -70,7 +70,7 @@ speakers:
         - basement
       entity_id: media_player.basement_speaker
       is_group: False
-      default_volume: 0.45
+      default_volume: 0.5
 
 
     all_speakers:
@@ -79,7 +79,7 @@ speakers:
         - all
       entity_id: media_player.all_speakers
       is_group: True
-      default_volume: 0.35
+      default_volume: 0.4
       child_speakers:
         - media_player.basement_speaker
         - media_player.family_room_speaker
@@ -96,7 +96,7 @@ speakers:
         - no bedroom
       entity_id: media_player.all_except_bedrooms
       is_group: True
-      default_volume: 0.35
+      default_volume: 0.4
       child_speakers:
         - media_player.basement_speaker
         - media_player.family_room_speaker
@@ -109,7 +109,7 @@ speakers:
         - all main floor speakers
       entity_id: media_player.main_floor_speakers
       is_group: True
-      default_volume: 0.35
+      default_volume: 0.4
       child_speakers:
         - media_player.family_room_speaker
         - media_player.kitchen_speaker
@@ -123,7 +123,7 @@ speakers:
         - all master
       entity_id: media_player.upstairs_speakers
       is_group: True
-      default_volume: 0.35
+      default_volume: 0.4
       child_speakers:
         - media_player.master_bedroom_speaker
         - media_player.master_bathroom_speaker

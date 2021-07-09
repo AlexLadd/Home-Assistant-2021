@@ -114,32 +114,33 @@ class Messages(BaseApp):
 
 
   def rockwood_garbage_schedule(self):
-    return '' 
+    yard_waste = self.get_state('sensor.ha_rockwood_garbage', attribute='next_yard_waste')
+    items = self.get_state('sensor.ha_rockwood_garbage', attribute='items')
+    start_time = self.get_state('sensor.ha_rockwood_garbage', attribute='date')
+    start = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').date()
+    now = datetime.datetime.now().date()
+    day = now.weekday()
 
-    # start_time = self.get_state('calendar.rockwood_garbage_schedule',attribute='start_time')
-    # start = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').date()
-    # now = datetime.datetime.now().date()
-    # day = now.weekday()
+    msg = ''
+    if start - now == datetime.timedelta(days=1):
+      if items == 'Hwms closed':
+        msg = 'There is no waste pickup tomorrow.'
+      else:
+        msg = 'The garbage items tomorrow are {}.'.format(items)
+    elif start - now == datetime.timedelta(days=0):
+      if items == 'Hwms closed':
+        msg = 'There is no waste pickup today.'
+      else:
+        msg = 'The garbage items today are {}.'.format(items)
+    
+    if yard_waste != 'unknown':
+      yw_start = datetime.datetime.strptime(yard_waste, '%Y-%m-%d %H:%M:%S').date()
+      if yw_start - now == datetime.timedelta(days=1):
+        msg += f'The yard waste collection this week is tomorrow ({yard_waste}).'
+      elif yw_start - now == datetime.timedelta(days=0):
+        msg += f'The yard waste collection this week is today ({yard_waste}).'
 
-    # items = self.get_state('calendar.rockwood_garbage_schedule', attribute='message')
-
-    # msg = ''
-    # if start - now == datetime.timedelta(days=1):
-    #   if items == 'Hwms closed':
-    #     msg = 'There is no waste pickup tomorrow.'
-    #   else:
-    #     msg = 'The garbage items tomorrow are {}.'.format(items)
-    # elif start - now == datetime.timedelta(days=0):
-    #   if items == 'Hwms closed':
-    #     msg = 'There is no waste pickup today.'
-    #   else:
-    #     msg = 'The garbage items today are {}.'.format(items)
-
-    # if (day != 0 or day != 1) and msg:
-    #   # Garbage days should only be Mondays or Tuesday on holidays (Xmas might be exception)
-    #   self._logger.log(f'Calender has an entry for the garbage pickup when the day is not Monday or Tuesday: {msg}')
-    #   return ''
-    # return msg
+    return msg
 
 
   def wind_check(self):
@@ -175,7 +176,7 @@ class Messages(BaseApp):
         if not self.climate.ac_mode and not master_open:
           msg += f' The overnight low is {todays_low} degrees and the air conditioner mode is off and no master bedroom windows are open.'
         elif self.climate.ac_mode and dw_open:
-            msg += ' The AC mode is on and {self.messages.entry_point_check().lower()}.'
+            msg += f' The AC mode is on and {self.messages.entry_point_check().lower()}.'
       elif todays_low < -11:
         if not self.climate.heat_mode:
           msg += f' The heat mode is off and the over night low is {todays_low} degrees. Something is wrong!'
@@ -212,10 +213,12 @@ class Messages(BaseApp):
     temp = self.climate.current_outdoor_temp
     low = self.climate.todays_low
     high = self.climate.todays_high
-    rain = self.climate.expected_precip_today
+    rain = self.climate.precip_chance_today
+    today_forcast = self.climate.day_forecast
     # ds_precip_type = self.get_state('sensor.dark_sky_precip_0d')
 
-    result = f'The current temperature is {temp} degrees outside with a high of {high} and low of {low} degrees.'
+    # result = f'The current temperature is {temp} degrees outside with a high of {high} and low of {low}.'
+    result = f'The current temperature is {temp} and todays forcast is {today_forcast}.'
 
     if ((self.now_is_between('03:00:00', '16:00:00') and -2 < high < 2) and -2 < temp < 2) \
         or (self.now_is_between('16:00:00', '03:00:00') and -2 < low < 2) and -2 < temp < 2:
@@ -332,7 +335,7 @@ class Messages(BaseApp):
   # Not using greeting since it is in TTS notify
   def build_message(self, date_check=False, holiday_check=False, season_check=False,
     wind_check=False, inside_weather=False, outside_weather=False, uv_check=False,
-    window_check=False, door_check=False, light_check=False, 
+    window_check=False, door_check=False, light_check=False, garbage_check=False,
     epson_ink_check=False, inspirational_quote=False, water_cactus=False):
       result = ''
       if date_check:
@@ -344,6 +347,8 @@ class Messages(BaseApp):
 
       if water_cactus:
         result += self.water_cactus() + ' '
+      if garbage_check:
+        result += self.rockwood_garbage_schedule() + ' '
 
       if inside_weather:
         result += self.inside_weather() + ' '
@@ -373,4 +378,6 @@ class Messages(BaseApp):
 
   def test(self, entity, attribute, old, new, kwargs):
     self._logger.log(f'Testing Messages Module: ')
-    self._logger.log(f'Light check: {self.epson_ink_check()}')
+
+    self._logger.log(f'Rockwood Garbage: {self.rockwood_garbage_schedule()}')
+

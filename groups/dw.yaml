@@ -40,4 +40,9 @@ window_sensors_master:
     - binary_sensor.study_window_sensor_r2
     - binary_sensor.basement_bedroom_window_1_sensor
 
-
+# All entry point group used in lovelace to track open entry points
+active_entry_points:
+  name: Active Entry Points
+  entities:
+    - group.door_sensors_master
+    - group.window_sensors_master

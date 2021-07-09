@@ -146,6 +146,7 @@ Alex: Add temperature check to door open notify when using a screen_door_sensor
 Alex Move DW options to yaml config and validate? Door sensor, Screen door sensor, temperature cutoff for screen door, etc
 
 2021-05-07, 16:29:03 Alex: install Carbon Monoxide detectors
+  -> DONE - place on correct floors but not screwed onto walls yet!
 
 2021-05-15, 10:10:21 Alex: add on/off boolean for each door open message so it can easily be disabled. OR add a second sensor to the screen doors on appropriate doors
   -> DONE - Added in support for two back-to-back doors
@@ -159,5 +160,54 @@ Alex Move DW options to yaml config and validate? Door sensor, Screen door senso
 2021-06-26, 02:34:23 Alex: add in a motion sensor check for last time the sensor was active and notify if it has been a very long time to change the batteries
 
 2021-06-26, 02:39:30 Alex: precip prob is 100 if it is raining currently
+  -> DONE - added exception clause that check if it is currently raining
 
 2021-06-26, 11:54:29 Stephanie: change weekend morning message to play at 9 AM
+  -> DONE - changed weekends to 9am
+
+2021-06-29, 14:59:25 Alex: add up rainfall over a week and month and year etc
+
+2021-06-29, 14:59:25 Alex: Telegram app not reading messages sent from us (feature request, bug report, etc)
+  -> FIXED ITSELF????
+
+2021-06-30, 16:11:41 Alex: add docker monitoring to the system and lovelace
+  -> DONE - added custom component that monitors docker
+
+2021-06-30, 16:11:41 Alex: add speed test integration
+  -> DONE - added custom component
+
+2021-06-30, 16:11:42 Alex: make a card with component counts such as motion sensors, door sensors, camera, light bulb, switches, etc
+
+2021-06-30, 16:11:42 Alex: add have I been p opened to when email is all good
+
+2021-06-30, 16:11:42 Alex: check that some devices are connected to the internet like the nuc, bridges, hue Bridge, etc
+  -> DONE - added these to lovelace
+
+2021-06-30, 16:11:42 Alex: add hue bridge to device status check
+  -> DONE - added to lovelace
+
+2021-06-30, 16:11:42 Alex: move old washer power sensor to the dehumidifier
+  -> DONE - move & created new app
+
+2021-06-30, 16:36:16 Stephanie: add smart outlets to the UI
+
+2021-06-30, 18:54:50 Alex: notify when dehumidifier is full using power sensor.
+  -> DONE - created new app
+
+2021-06-30, 21:12:56 Alex: next HA version includes remote control codes in the Sony bravia TV component. UPDATE!!!
+
+2021-07-04, 19:57:09 Stephanie: turn the kitchen speaker up to 40% when playing music and announcements
+  -> DONE - increased volume in speaker yaml config
+
+2021-07-05, 18:17:27 Alex: add dehumidifier to lovelace climate section
+  -> DONE - added to lovelace home page climate section
+
+2021-07-05, 23:06:56 Alex: change lovelace home assistant docker name on the home view to be shorter. It currently makes the button higher than the rest
+  -> DONE - changed to "HA" from "home assistant"
+
+2021-07-05, 16:38:28 Alex: add control for thermostat to lovelace such as sliders for Temps etc. Add manual hvac and automated hvac mode boolean to make a new thermostat lovelace card setup
+
+2021-07-06, 22:29:12 Alex: add a recurculate mode that can be toggle and something to show if it's active in the locelace ui. Another boolean?
+
+2021-07-08, 12:17:01 Alex: add reminder to empty dehumidifier in morning if it's not running
+  -> DONE - added to individual morning telegram notification

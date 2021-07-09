@@ -4,6 +4,7 @@
 indoor_temp_sensors_master:
   name: "Indoor Temperature Sensors"
   entities:
+    - sensor.average_indoor_temperature
     - sensor.hue_motion_study_temperature
     - sensor.hue_motion_study_2_temperature
     - sensor.hue_motion_kitchen_temperature

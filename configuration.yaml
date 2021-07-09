@@ -10,6 +10,7 @@ homeassistant:
   # internal_url: !secret internal_url
   allowlist_external_dirs:
     - '/config/www'
+    - '/config/appdaemon/conf/media/'
   # allowlist_external_urls:
   #   - "http://images.com/image1.png"
   # media_dirs:
@@ -19,6 +20,11 @@ homeassistant:
 
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
+
+
+# Use browser_mod
+browser_mod:
+
 
 lovelace: !include lovelace/lovelace.yaml
   # mode: yaml
@@ -136,6 +142,34 @@ octoprint:
   number_of_tools: 1
 
 
+monitor_docker:
+  - name: Docker
+    containers:
+      - appdaemon-HARRIS
+      - home-assistant-HARRIS
+      - grafana
+      - influxdb
+      - mosquitto
+    rename:
+      appdaemon-HARRIS: AppDaemon
+      home-assistant-HARRIS: Home Assistant
+      grafana: Grafana
+      influxdb: Influxdb
+      mosquitto: MQTT
+    monitored_conditions:
+      - version
+      - containers_running
+      - containers_total
+      - containers_paused
+      - containers_stopped
+      - state
+      - status
+      - memory_percentage
+      - 1cpu_percentage
+      - network_speed_up
+      - network_speed_down
+
+
 # Device Tracking
 life360:
   accounts:
@@ -162,11 +196,14 @@ camera: !include_dir_merge_list camera
 input_boolean: !include_dir_merge_named input_booleans
 input_text: !include_dir_merge_named input_texts
 input_select: !include_dir_merge_named input_selects
+input_number: !include_dir_merge_named input_numbers
 counter: !include_dir_merge_named counters
+switch: !include_dir_merge_list switches
 
 group: !include_dir_merge_named groups
 scene: !include_dir_merge_list scenes 
 automation: !include_dir_merge_list automations
+script: !include_dir_merge_named scripts
 
 # alert: !include_dir_merge_named alerts
 # timer: !include_dir_merge_named timers
@@ -174,6 +211,4 @@ automation: !include_dir_merge_list automations
 # input_datetime: !include_dir_merge_named input_datetimes
 # zone: !include_dir_merge_list zones
 # cover: !include_dir_merge_list covers
-# switch: !include_dir_merge_list switches
-# script: !include_dir_merge_named scripts
 

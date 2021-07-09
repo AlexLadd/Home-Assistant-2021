@@ -7,14 +7,16 @@ from const import CONF_FRIENDLY_NAME, CONF_SENSORS, CONF_ALIASES
 
 
 CONF_START_KEY = 'sensors'
-CONF_LOG_LEVEL = 'log_level' # Log level at the individual motion sensor (class) level
+CONF_LOG_LEVEL = 'log_level'                     # Log level at the individual motion sensor (class) level
 CONF_ON_LIGHTS = 'on_lights'
 CONF_OFF_LIGHTS = 'off_lights'
 CONF_ON_DURATION = 'on_duration'
 CONF_DISABLE_STATES = 'motion_disable_states'
 CONF_TRACK_LAST_MOTION = 'track_last_motion'
+CONF_USE_PET_MODE = 'use_pet_mode'              # Disable sensors at night so cats don't trigger lights, etc
 
 CONF_DEFAULT_LOG_LEVEL = 'NOTSET'
+CAT_MODE_BOOLEAN = 'input_boolean.pet_mode'
 
 class Motion(BaseApp):
 
@@ -32,6 +34,7 @@ class Motion(BaseApp):
             vol.Optional(CONF_OFF_LIGHTS): utils_validation.ensure_list,
             vol.Optional(CONF_DISABLE_STATES, default=[]): list,
             vol.Optional(CONF_TRACK_LAST_MOTION, default=True): bool,
+            vol.Optional(CONF_USE_PET_MODE, default=True): bool,
           }
         ),
       })
@@ -65,14 +68,11 @@ class Motion(BaseApp):
 
     for name, data in cfg[CONF_SENSORS].items():
       self._motion_data[name] = data 
-
       # off_lights == on_lights when it isn't defined
       if CONF_OFF_LIGHTS not in data:
         self._motion_data[name][CONF_OFF_LIGHTS] = data[CONF_ON_LIGHTS]
-
       # Add the room name to aliases (add aliases if it doesnt exists)
       self._motion_data[name].setdefault(CONF_ALIASES, []).append(name)
-
       # Set sensor friendly name to room
       self._motion_data[name][CONF_FRIENDLY_NAME] = name.replace('_', ' ').title()
 
@@ -86,7 +86,8 @@ class Motion(BaseApp):
 
   def _kitchen_motion_cb(self, entity, attribute, old, new, kwargs):
     if not self._motion_sensors['kitchen']._should_adjust():
-      self._logger.log('The kitchen custom motion automation is disabled. No morning announcement or song will be played!', level='WARNING')
+      # Triggers this message too often when motion in the kitchen frequently
+      # self._logger.log('The kitchen custom motion automation is disabled. No morning announcement or song will be played!', level='DEBUG')
       return
 
     if self.utils.valid_input(old, new) and new == 'on':
@@ -186,6 +187,16 @@ class MotionEntity:
     """ Sensor used to track last motion location in house """
     return self.app.const.LAST_MOTION_LOCATION_SENSOR
 
+  @property
+  def use_pet_mode(self):
+    """ Disable lights, etc when pet_mode is on at night for cat """
+    return self.attrs[CONF_USE_PET_MODE]
+
+  @property
+  def cat_mode_on(self):
+    """ Return True is cat_mode boolean is currently on """
+    return self.app.get_state(CAT_MODE_BOOLEAN) == 'on'
+
 
   def _should_adjust(self, override=False):
     if not self._enabled:
@@ -193,11 +204,16 @@ class MotionEntity:
       return False
 
     # Check if config constraints are met
-    elif self.conditions:
+    if self.conditions:
       for b in self.conditions:
         if self.app.constraint_compare(b):
           self.logger.log(f"One of the {self.name} condition(s) is not met: {b}.", level=self.log_level)
           return False
+
+    if self.use_pet_mode and self.cat_mode_on and self.app.sleep.everyone_asleep:
+      self.logger.log(f'{self.name} is disabled because pet_mode is on ({self.cat_mode_on}) and everyone is asleep ({self.app.sleep.everyone_asleep}).', level=self.log_level)
+      return False
+
     return True
 
 

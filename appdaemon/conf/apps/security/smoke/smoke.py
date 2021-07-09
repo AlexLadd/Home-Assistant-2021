@@ -15,7 +15,7 @@ from dateutil.relativedelta import relativedelta
 MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING = 3
 TEST_NOTIFICATION_DAY = 1
 TEST_NOTIFICATION_HOUR = 19
-TEST_NOTIFICATION_MINUTE = 30
+TEST_NOTIFICATION_MINUTE = 20
 
 MAIN_HALLWAY_SMOKE_DETECTOR = 'binary_sensor.main_hallway_smoke_detector'
 LAUNDRY_ROOM_SMOKE_DETECTOR = 'binary_sensor.laundry_room_smoke_detector'
@@ -51,18 +51,35 @@ class Smoke(BaseApp):
     # self._next_smoke_detector_test_run_in = self.run_in(self._smoke_detector_periodic_test_notification, seconds_next_three_months)
 
     # Notify us to test smoke detectors every X number of months on the first day at 7:30PM
+    # month_to_check = int(self.datetime().month / MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING) * MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
+    # if month_to_check == self.datetime().month and (self.datetime().day > TEST_NOTIFICATION_DAY or (self.datetime().hour > TEST_NOTIFICATION_HOUR and self.datetime().minute > TEST_NOTIFICATION_MINUTE)):
+    #   month_to_check += MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
+    #   month_to_check = month_to_check % 12
+    #   if month_to_check == 0: month_to_check = 1
+    # dt_notify = self.datetime().replace(month=month_to_check, day=TEST_NOTIFICATION_DAY, hour=TEST_NOTIFICATION_HOUR, minute=TEST_NOTIFICATION_MINUTE) 
+    # three_months = dt_notify + relativedelta(months=MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING)
+    # seconds_next_three_months = (dt_notify - self.datetime()).total_seconds()
+    # self._next_smoke_detector_test_run_in = self.run_in(self._smoke_detector_periodic_test_notification, seconds_next_three_months)
+
+
+    # Notify us to test smoke detectors every X number of months on the first day at 7:30PM
     month_to_check = int(self.datetime().month / MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING) * MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
-    if month_to_check == self.datetime().month and (self.datetime().day > TEST_NOTIFICATION_DAY or (self.datetime().hour > TEST_NOTIFICATION_HOUR and self.datetime().minute > TEST_NOTIFICATION_MINUTE)):
+    if month_to_check == 0: month_to_check = 3
+    dt_check = self.datetime().replace(month=month_to_check, day=TEST_NOTIFICATION_DAY, hour=TEST_NOTIFICATION_HOUR, minute=TEST_NOTIFICATION_MINUTE) 
+
+    if month_to_check == self.datetime().month and self.datetime() < dt_check:
+      # It is notification day but we have not reached the notify time yet!
+      pass
+    else:
       month_to_check += MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
-      month_to_check = month_to_check % 12
-      if month_to_check == 0: month_to_check = 1
-    dt_notify = self.datetime().replace(month=month_to_check, day=TEST_NOTIFICATION_DAY, hour=TEST_NOTIFICATION_HOUR, minute=TEST_NOTIFICATION_MINUTE) 
-    three_months = dt_notify + relativedelta(months=MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING)
-    seconds_next_three_months = (dt_notify - self.datetime()).total_seconds()
+      if month_to_check > 12: month_to_check = 3
+
+    next_notify = self.datetime().replace(month=month_to_check, day=TEST_NOTIFICATION_DAY, hour=TEST_NOTIFICATION_HOUR, minute=TEST_NOTIFICATION_MINUTE) 
+    seconds_next_three_months = (next_notify - self.datetime()).total_seconds()
     self._next_smoke_detector_test_run_in = self.run_in(self._smoke_detector_periodic_test_notification, seconds_next_three_months)
 
-    # Alternative method but might not be exact over the long run (AD would likely be reset before this would be an issue though)
-    # self.run_every(self._smoke_detector_periodic_test_notification, dt_notify, (three_months - self.datetime()).total_seconds())
+    # self._logger.log(f'month_to_check: {month_to_check}, check: {int(3/3)}')
+    # self._logger.log(f'next_notify: {next_notify}, seconds_next_three_months: {seconds_next_three_months}, today: {self.datetime()}, delta: {next_notify - self.datetime()}')
 
 
   def map_alias_to_entity(self, alias):
@@ -83,7 +100,7 @@ class Smoke(BaseApp):
     return False
 
 
-  def _smoke_detector_periodic_test_notification(self, entity, attribute, old, new, kwargs):
+  def _smoke_detector_periodic_test_notification(self, kwargs):
     """ Periodic Smoke detector test notification """
     log_msg = f'Please test the smoke detectors. locals: {locals()}'
     self._logger.log(log_msg)
@@ -92,11 +109,8 @@ class Smoke(BaseApp):
     self.notifier.telegram_notify(tts_msg)
 
     # Notify us to test smoke detectors every X number of months on the first day at 7:30PM
-    month_to_check = self.datetime().month % MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING * MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
-    if month_to_check == self.datetime().month and (self.datetime().day > 1 or (self.datetime().hour > 19 and self.datetime().minute > 30)):
-      self._logger.log(f'same month and before 7:30PM on the first day of the month')
-      month_to_check += MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
-    dt_notify = self.datetime().replace(month=month_to_check, day=1, hour=19, minute=30) 
+    month_to_check = int(self.datetime().month / MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING) * MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING + MONTHS_BETWEEN_SMOKE_DETECTOR_TESTING
+    dt_notify = self.datetime().replace(month=month_to_check, day=TEST_NOTIFICATION_DAY, hour=TEST_NOTIFICATION_HOUR, minute=TEST_NOTIFICATION_MINUTE) 
     seconds_next_three_months = (dt_notify - self.datetime()).total_seconds()
 
     if self._next_smoke_detector_test_run_in is not None:
@@ -118,7 +132,7 @@ class Smoke(BaseApp):
     self.log(f'Testing Smoke Module: ') 
     # self._test_detector_states()
     # self._test_detector_name_mapping()
-    self._smoke_detector_periodic_test_notification(None,None,None,None,None)
+    self._smoke_detector_periodic_test_notification(None, None)
 
   def _test_detector_states(self):
     self._logger.log(f'---------------------')

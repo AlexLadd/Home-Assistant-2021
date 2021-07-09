@@ -15,6 +15,8 @@ DAY_START = '03:30:00'
 DAY_END = '15:00:00'
 DEFAULT_ALEX_WAKEUP_TIME = '08:00:00'
 DEFAULT_STEPH_WAKEUP_TIME = '07:57:00'
+DEFAULT_WEEKEND_ALEX_WAKEUP_TIME = '09:00:00'
+DEFAULT_WEEKEND_STEPH_WAKEUP_TIME = '08:57:00'
 SECURITY_MONITORING_FREQUENCY = 10*60
 
 NOTIFY_TARGET = 'everyone'
@@ -46,6 +48,7 @@ class AwakeAsleepController(BaseApp):
     self.se = self.get_app('spotify_engine')
     self.cat_water_dish = self.get_app('cat_water_dish')
     self.dw = self.get_app('doors_windows')
+    self.dehumidifier = self.get_app('dehumidifier')
 
     self._sleep_lock = threading.Lock()       
 
@@ -160,13 +163,16 @@ class AwakeAsleepController(BaseApp):
     # self.notifier.telegram_notify(f'Good morning {target}', 'logging', 'Morning Message')
     msg = self.messages.build_message(
       holiday_check=True,
-      # garbage_check=True,
+      garbage_check=True,
       outside_weather=True,
       water_cactus=True,
       wind_check=True,
       # fd_battery_check=True,
       epson_ink_check= True,
     )
+
+    if not self.dehumidifier.is_on and self.climate.basement_storage_humidity:
+      msg += f' The dehumidifier is off and the humidity in the basement storage room if {self.climate.basement_storage_humidity}.'
 
     if msg:
       msg = f'Good morning {target.title()}. {self.utils.one_space(msg)}'
@@ -206,6 +212,11 @@ class AwakeAsleepController(BaseApp):
 
   def _timed_wakeup(self, kwargs):
     """ Callback for programmed wakeup times """
+    if not self.utils.is_weekday():
+      self.run_daily(self._timed_wakeup, self.parse_time(DEFAULT_WEEKEND_STEPH_WAKEUP_TIME), steph=True)
+      self.run_daily(self._timed_wakeup, self.parse_time(DEFAULT_WEEKEND_ALEX_WAKEUP_TIME), alex=True)
+      return
+  
     if 'alex' in kwargs:
       if self.sleep.alex_asleep:
         self._logger.log('Alex set awake override')

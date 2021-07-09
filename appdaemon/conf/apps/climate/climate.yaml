@@ -8,10 +8,12 @@ climate:
   #   - utils
   dependencies: 
     - custom_logger
+  logging_cutoff: INFO
 
 smart_heating_cooling:
   module: climate_controller
   class: SmartClimate
+  logging_cutoff: INFO
   # global_dependencies:
   #   - base_app
   #   - const

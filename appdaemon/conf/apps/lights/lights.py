@@ -34,9 +34,9 @@ CONF_START_KEY = 'lights'
 
 CONF_LOG_LEVEL = 'log_level'
 CONF_LIGHT_DISABLE_STATES = 'light_disable_states'
-CONF_LIGHT_ENABLED_BOOLEAN_TRACKER = 'enabled_boolean_tracker'
-CONF_TAKE_OVER_CONTROL = 'take_over_control'          # When True, the light will be disable when manually turned on (or adjusted [NOT MIMPLEMENTED YET!!!])
-CONF_DETECT_NON_HA_CHANGES = 'detect_non_ha_changes' # Currently does nothing
+CONF_LIGHT_ENABLED_BOOLEAN_TRACKER = 'enabled_boolean_tracker'  # Boolean used to manually enable/disable a specific light
+CONF_TAKE_OVER_CONTROL = 'take_over_control'                    # When True, the light will be disable when manually turned on (or adjusted [NOT MIMPLEMENTED YET!!!])
+CONF_DETECT_NON_HA_CHANGES = 'detect_non_ha_changes'            # Currently does nothing
 
 CONF_SWITCH_ENTITY_ID = 'switch_entity_id'
 CONF_PARENT_LIGHT = 'parent_light'
@@ -831,7 +831,7 @@ class Light:
   def _call_service(self, service, kwargs):
     """ wrapper for HA calls to log any errors """
     res = self.app.call_service(service, **kwargs)
-    if not res:
+    if not res and self.log_level == 'DEBUG':
       if service == 'light/turn_on' and (not self._is_on or not self._should_be_on):
         self._logger.log(f'Failed to call "{service}" using {kwargs}, result: {res}. Light is_on: {self._is_on}, should_be_On: {self._should_be_on}, state info: {self.app.get_state(kwargs["entity_id"], attribute="all")}', level='ERROR', notify=False)
       elif service == 'light/turn_off' and (self._is_on or self._should_be_on):
@@ -1038,7 +1038,7 @@ class Light:
     """ Check if light is enabled using the manual HA boolean """
     try:
       if not self.app.entity_exists(self.enabled_state_boolean_tracker):
-        self._logger.log(f'{self.name} has not tracker boolean', self.log_level)
+        self._logger.log(f'{self.name} has no tracker boolean', self.log_level)
         return True
       return bool(self.app.get_state(self.enabled_state_boolean_tracker) == 'on')
     except Exception as e:

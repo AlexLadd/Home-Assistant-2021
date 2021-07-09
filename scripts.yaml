@@ -1,0 +1,14 @@
+turn_off_all_lights:
+  alias: Turn Off All Lights (Duplicate)
+  sequence:
+  - service: homeassistant.turn_off
+    target:
+      entity_id: group.lights_master
+  mode: single
+turn_all_lights_off:
+  alias: Turn All Lights Off
+  sequence:
+  - service: homeassistant.turn_off
+    target:
+      entity_id: group.lights_master
+  mode: restart

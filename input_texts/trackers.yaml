@@ -11,4 +11,5 @@ washing_machine_last_used:
 dishwasher_last_used:
   name: Dishwasher Last Used
 
-  
+dehumidifier_last_used:
+  name: Dehumidifier Last Used

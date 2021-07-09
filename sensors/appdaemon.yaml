@@ -40,5 +40,9 @@
       friendly_name: "Washing Machine Run Time"
       value_template: >
         {% if True %} 00:00:00 {% endif %} 
+    dehumidifier_run_time:
+      friendly_name: "Dehumidifier Run Time"
+      value_template: >
+        {% if True %} 00:00:00 {% endif %} 
 
 
